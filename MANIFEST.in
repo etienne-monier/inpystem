@@ -1,0 +1,4 @@
+# Include LICENSE and README
+include README*
+include LICENSE
+include MANIFEST.in
