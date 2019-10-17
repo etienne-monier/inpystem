@@ -688,10 +688,24 @@ class Stem3D(AbstractStemAcquisition):
         """Implements the HypersSpy tool to visualize the image for a
         given band.
         """
+        mask3 = np.tile(
+            self.scan.get_mask()[:, :, np.newaxis],
+            [1, 1, self.hsdata.data.shape[2]])
         hs_data = hs.signals.Signal2D(
-                np.moveaxis(self.hsdata.data, [0, 1, 2], [1, 2, 0]))
+                np.moveaxis(self.hsdata.data * mask3, [0, 1, 2], [1, 2, 0]))
 
-        hs_data.axes_manager = self.hsdata.axes_manager
+        axis_0 = [0, 1, 2]
+        axis_1 = [2, 0, 1]
+        for n in range(3):
+            hs_data.axes_manager[axis_0[n]].name = \
+                self.hsdata.axes_manager[axis_1[n]].name
+            hs_data.axes_manager[axis_0[n]].offset = \
+                self.hsdata.axes_manager[axis_1[n]].offset
+            hs_data.axes_manager[axis_0[n]].scale = \
+                self.hsdata.axes_manager[axis_1[n]].scale
+            hs_data.axes_manager[axis_0[n]].units = \
+                self.hsdata.axes_manager[axis_1[n]].units
+
         hs_data.metadata = self.hsdata.metadata
 
         hs_data.plot()
@@ -700,7 +714,10 @@ class Stem3D(AbstractStemAcquisition):
         """Implements the HypersSpy tool to visualize the spectrum for
         a given pixel.
         """
-        hs_data = hs.signals.Signal1D(self.hsdata.data * self.scan.get_mask())
+        mask3 = np.tile(
+            self.scan.get_mask()[:, :, np.newaxis],
+            [1, 1, self.hsdata.data.shape[2]])
+        hs_data = hs.signals.Signal1D(self.hsdata.data * mask3)
 
         hs_data.axes_manager = self.hsdata.axes_manager
         hs_data.metadata = self.hsdata.metadata

@@ -60,7 +60,10 @@ In addition to these arguments, a required input is :code:`key` which is a small
 With load functions
 ~~~~~~~~~~~~~~~~~~~
 
-The :func:`~.dataset.load_file`, :func:`~.dataset.load_key` and :func:`~.dataset.load_example` functions also enable to load development data. To that end, the user just has to use the :code:`dev` input which is a dictionary. This dictionary should store the desired inputs :code:`modif_file`, :code:`snr`, :code:`seed` and :code:`normalized` and their values.
+The :func:`~.dataset.load_file`, :func:`~.dataset.load_key` and :func:`~.dataset.load_example` functions also enable to load development data. To that end, the user just has to use the :code:`dev` input which is a dictionary. This dictionary should store the desired inputs:
+
+* for 2D data: :code:`modif_file`, :code:`snr`, :code:`seed` and :code:`normalized`
+* for 2D data: :code:`PCA_transform`, :code:`PCA_th`, :code:`modif_file`, :code:`snr`, :code:`seed` and :code:`normalized`
 
 .. code-block:: python
 
