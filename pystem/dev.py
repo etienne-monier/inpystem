@@ -278,7 +278,7 @@ class Dev3D(sig.Stem3D):
 
     def __init__(
             self, key, hsdata, scan=None, modif_file=None, snr=None,
-            seed=None, normalize=True, PCA_transform=True, PCA_th='auto',
+            seed=None, normalize=True, PCA_transform=False, PCA_th='auto',
             verbose=True):
         """Dev3D __init__ function.
 
@@ -309,7 +309,7 @@ class Dev3D(sig.Stem3D):
         PCA_transform: optional, bool
             If PCA_transformed is True, a PCA transformation is applied
             to the data.
-            Default is True.
+            Default is False.
         PCA_th: optional, str, int
             The desired data dimension after dimension reduction.
             Possible values are:

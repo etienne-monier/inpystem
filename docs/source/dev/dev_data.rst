@@ -140,7 +140,7 @@ In the case of True :attr:`~.dev.Dev3D.PCA_transform` at initialization, a PCA p
 
 .. code-block:: python
 
-    >>> dev = {'snr': 0.1}
+    >>> dev = {'snr': 0.1, 'PCA_transform': True}
     >>> data = pystem.load_example('HR-sample', 3, dev=dev)
     Reading configuration file ...
     Generating data ...
@@ -197,7 +197,7 @@ These methods incorporate also normalization procedure inside. This means that t
     >>> npt.assert_allclose(data.data, inverse_data)  # Equal: direct, then inverse is identity :)
 
     # Case with PCA-initialized object
-    >>> dev = {'snr': 0.1}
+    >>> dev = {'snr': 0.1, 'PCA_transform': True}
     >>> data = pystem.load_example('HR-sample', 3, dev=dev)
     >>> inverse_data = data.inverse_transform(data.data)
     >>> direct_data = data.direct_transform(inverse_data)
