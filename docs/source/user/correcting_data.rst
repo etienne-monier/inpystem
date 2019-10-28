@@ -23,7 +23,7 @@ In the below example, the user wants to remove the red rows, the green columns a
 Correcting data manually
 ------------------------
 
-This is realized easily by using the :meth:`~.signals.AbstractStemAcquisition.correct` method of the data object. This only requires 
+This is realized easily by using the :meth:`~.signals.AbstractStem.correct` method of the data object. This only requires 
 
 * slices objects that define the rows and columns to keep (and the bands in case of 3D data),
 * the position of dead pixels.
@@ -70,7 +70,7 @@ A lot of information can be given to pystem through the configuration file. To p
     bands = 90:
     dpixels = [9384, 8468]
 
-.. note:: Contrary to the :meth:`~.signals.AbstractStemAcquisition.correct` method which allows slices, the configuration files require literal slices such as :code:`1:-50`.
+.. note:: Contrary to the :meth:`~.signals.AbstractStem.correct` method which allows slices, the configuration files require literal slices such as :code:`1:-50`.
     
-    One other main difference is that slices objects *do not accept negative values* while the configuration files values are parsed and *accept negative values*. As a consequence, to tell pystem you just want to keep all rows but the first one and the five last ones, you should write :code:`slice(1:m-1)` (where :code:`m` is the number of rows) for the :meth:`~.signals.AbstractStemAcquisition.correct` method while the configuration file would accept :code:`1:-5`.
+    One other main difference is that slices objects *do not accept negative values* while the configuration files values are parsed and *accept negative values*. As a consequence, to tell pystem you just want to keep all rows but the first one and the five last ones, you should write :code:`slice(1:m-1)` (where :code:`m` is the number of rows) for the :meth:`~.signals.AbstractStem.correct` method while the configuration file would accept :code:`1:-5`.
 

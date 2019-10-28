@@ -170,9 +170,12 @@ class FISTA:
         bool
             Should the iterations go on ?
         """
-
+        # Iterations should be continued as long as n is smaller than
+        # Nit.
         if self.Nit is not None:
             return n < self.Nit
+
+        # The result depends on n and the critera.
         else:
             if n < 2:
                 return True
@@ -180,12 +183,13 @@ class FISTA:
                 return False
             else:
                 critera = self.StopCritera(n)
+
+                # Iterations should be stopped as we got close enough to 0.
                 if critera is None:
                     if self.verbose:
                         print(
                             'Iterations stopped as the functional is allclose'
                             ' to 0.')
-                    return False
                 else:
                     return critera > self.lim
 
@@ -229,12 +233,14 @@ class FISTA:
             # Display info
             if self.verbose:
                 if n >= 2:
+
+                    critera = self.StopCritera(n)
                     print(
                         'n: {}, f + g: {:.3e}, critera: {:.5f} '
                         '(goal: {:.1e})'.format(
                             n,
                             self.E[n-1],
-                            self.StopCritera(n),
+                            0 if critera is None else critera,
                             self.lim)
                         )
                 else:

@@ -8,6 +8,8 @@ These objects are:
 2. The 2D HAADF image,
 """
 
+import abc
+
 import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
@@ -17,7 +19,164 @@ from .tools import PCA
 from . import signals as sig
 
 
-class Dev2D(sig.Stem2D):
+class AbstractDev(abc.ABC):
+    """Abstract Dev acquisition class.
+
+    This is an *abstract* class, which mean you can not instantiate such
+    object.
+
+    It defines the structure for a Dev acquisition object.
+
+    key: str
+        1-word description of the Dev2D image.
+    data: (m,n) or (m, n, l) numpy array
+        The Dev2D image data before the noise step.
+        Its dimension is (m,n).
+    ndata: (m,n) or (m, n, l) numpy array
+        The noised Dev2D image.
+        If :code:`snr` is None, :code:`ndata` is None.
+        Its dimension is (m,n).
+    sigma: float
+        The noise standard deviation.
+    seed: optional, int
+        The random noise matrix seed.
+    normalize: bool
+        If :code:normalize` is True, the data will be centered
+        and normalize before the corruption steps.
+    mean_std: None, 2-tuple
+        It stores the data mean and std in case normalize is True.
+    verbose: bool
+        If True, information will be displayed.
+        Default is True.
+    """
+    def __init__(self, key, data, mask=None, sigma=None, seed=None,
+                 normalize=True, verbose=True):
+        """AbstractDev constructor.
+
+        Arguments
+        ---------
+        key: str
+            1-word description of the Dev2D image.
+            Generally, it's common to the stem acquisition object.
+        data: (m, n) or (m, n, l) numpy array
+            The noise-free image data.
+        mask: (m, n) numpy array
+            The sampling mask.
+        sigma: optional, None, float
+            The desired standard deviation used to model noise.
+            Dafault is None for no additional noise.
+        seed: optional, None, int
+            The random noise matrix seed.
+            Dafault is None for no seed initialization.
+        normalize: optional, bool
+            If :code:normalize` is True, the data will be centered
+            and normalize before the corruption steps.
+            Default is True.
+        verbose: optional, bool
+            If True, information will be displayed.
+            Default is True.
+        """
+
+        # Save inputs
+        self.key = key
+        self.data = data
+        self.ndata = None
+
+        self.normalize = normalize
+        self.verbose = verbose
+
+        # Normalize if necessary
+        self.mean_std = None
+
+        if self.normalize:
+
+            # mask is extended to 3D if data are 3D.
+            maskn = mask if data.ndim == 2 else np.tile(
+                mask[:, :, np.newaxis], [1, 1, data.shape[2]])
+            # The masked data.
+            m_data = (self.data * maskn).flatten()
+            # Sampled elements location
+            nnz = np.flatnonzero(m_data)
+            # Data that can be used for mean and std.
+            correct_data = m_data[nnz]
+
+            mean = correct_data.mean()
+            std = correct_data.std()
+
+            self.data = (self.data - mean) / std
+            self.mean_std = (mean, std)
+
+        # Setup noise
+        self._sigma = sigma
+
+        # sets seed
+        self._seed = seed
+        self.seed = seed
+
+        if self._sigma is not None:
+
+            # Update noised image
+            self.set_ndata()
+
+    @property
+    def seed(self):
+        """seed property getter.
+        """
+        return self._seed
+
+    @seed.setter
+    def seed(self, value):
+        """seed property setter.
+        """
+        # Set seed value
+        npr.seed(self._seed)
+
+        # Update value
+        self._seed = value
+
+    @property
+    def sigma(self):
+        """sigma property getter.
+        """
+        return self._sigma
+
+    @sigma.setter
+    def sigma(self, value):
+        """sigma property setter.
+
+        This function modifies the noisy image standard deviation.
+
+        Arguments
+        ---------
+        value: float
+            The desired standard deviation.
+        """
+        # get sigma
+        if value is not None:
+
+            # Set new value
+            self._sigma = value
+
+            # Update noised image
+            self.set_ndata()
+
+        else:
+            self.ndata = None
+            self._sigma = None
+
+    def set_ndata(self):
+        """ Constructs the noised data.
+
+        It is also used to draw a new noise matrix.
+        """
+        # Draw noise
+        noise_matrix = npr.randn(*self.data.shape)
+
+        # Compute noised data.
+        self.ndata = self.data + self.sigma * noise_matrix
+
+
+class Dev2D(sig.Stem2D, AbstractDev):
     """Dev2D Class.
 
     Attributes
@@ -38,8 +197,6 @@ class Dev2D(sig.Stem2D):
     scan : optional, Scan object
         The sampling scan object associated with the data.
         Default is None for full sampling.
-    snr: optional, float
-        The desired snr used to model noise.
     sigma: float
         The noise standard deviation.
     seed: optional, int
@@ -52,17 +209,11 @@ class Dev2D(sig.Stem2D):
     verbose: bool
         If True, information will be displayed.
         Default is True.
-
-    Todo
-    ----
-    Another mother class AbstractDev should be written to implement all
-    snr, seed etc. functions. Dev2D and Dev3D should then heritate from
-    Stem2D/3D and from this AbstractDev class.
     """
 
     def __init__(
-            self, key, hsdata, scan=None, modif_file=None, snr=None, seed=None,
-            normalize=True, verbose=True):
+            self, key, hsdata, scan=None, modif_file=None, sigma=None,
+            seed=None, normalize=True, verbose=True):
         """SpectrumImage constructor.
 
         Arguments
@@ -79,8 +230,8 @@ class Dev2D(sig.Stem2D):
         modif_file: optional, None, str
             A .conf configuration file to remove rows, columns or dead
             pixels. Default is None for no modification.
-        snr: optional, None, float
-            The desired snr used to model noise.
+        sigma: optional, None, float
+            The desired standard deviation used to model noise.
             Dafault is None for no additional noise.
         seed: optional, None, int
             The random noise matrix seed.
@@ -93,109 +244,18 @@ class Dev2D(sig.Stem2D):
             If True, information will be displayed.
             Default is True.
         """
-        sig.Stem2D.__init__(self, hsdata, scan, verbose)
+        sig.Stem2D.__init__(self, hsdata.copy(), scan, verbose)
 
         # Checks is modification is required
         if modif_file is not None:
             self.correct_fromfile(modif_file)
 
-        # Save inputs
-        self.key = key
-        self.data = self.hsdata.data
-        self.ndata = None
-
-        self.normalize = normalize
-        self.verbose = verbose
-
-        # Normalize if necessary
-        self.mean_std = None
-
-        if self.normalize:
-            mean = self.data.mean()
-            std = self.data.std()
-            self.data = (self.data - mean) / std
-            self.mean_std = (mean, std)
-
-        # Setup noise
-        self._snr = snr
-        self.sigma = None
-
-        # sets seed
-        self._seed = seed
-        self.seed = seed
-
-        if self._snr is not None:
-
-            # Computes the noise standard deviation based on the snr value.
-            P = np.mean(self.data ** 2)
-            self.sigma = np.sqrt(P * 10 ** (-self._snr / 10))
-
-            # Update noised image
-            self.set_ndata()
+        AbstractDev.__init__(
+            self, key, self.hsdata.data, self.scan.get_mask(), sigma, seed,
+            normalize, verbose)
 
         # Updates hs data
-        self.hsdata.data = self.data if self._snr is None else self.ndata
-
-    @property
-    def seed(self):
-        """seed property getter.
-        """
-        return self._seed
-
-    @seed.setter
-    def seed(self, value):
-        """seed property setter.
-        """
-        # Set seed value
-        npr.seed(self._seed)
-
-        # Update value
-        self._seed = value
-
-    @property
-    def snr(self):
-        """snr property getter.
-        """
-        return self._snr
-
-    @snr.setter
-    def snr(self, value):
-        """snr property setter.
-
-        This function modifies the noisy image standard deviation.
-
-        Arguments
-        ---------
-        value: float
-            The desired SNR.
-        """
-        # get sigma
-        if value is not None:
-
-            # Compute new value
-            P = np.mean(self.data ** 2)
-            self.sigma = np.sqrt(P * 10 ** (-value / 10))
-
-            # Set new value
-            self._snr = value
-
-            # Update noised image
-            self.set_ndata()
-
-        else:
-            self.ndata = None
-            self._snr = None
-
-    def set_ndata(self):
-        """ Constructs the noised data.
-
-        It is also used to draw a new noise matrix.
-        """
-        # Draw noise
-        noise_matrix = npr.randn(*self.data.shape)
-
-        # Compute noised data.
-        self.ndata = self.data + self.sigma * noise_matrix
+        self.hsdata.data = self.data if self._sigma is None else self.ndata
 
     def restore(self, method='interpolation', parameters={}, verbose=None):
         """
@@ -204,7 +264,7 @@ class Dev2D(sig.Stem2D):
             verbose = self.verbose
 
         # Updates hs data
-        self.hsdata.data = self.data if self._snr is None else self.ndata
+        self.hsdata.data = self.data if self._sigma is None else self.ndata
         return sig.Stem2D.restore(self, method, parameters, verbose)
 
     def plot(self, noised=False):
@@ -237,7 +297,7 @@ class Dev2D(sig.Stem2D):
         return '<{}>'.format(L2)
 
 
-class Dev3D(sig.Stem3D):
+class Dev3D(sig.Stem3D, AbstractDev):
     """Dev3D Class
 
     Attributes
@@ -277,7 +337,7 @@ class Dev3D(sig.Stem3D):
     """
 
     def __init__(
-            self, key, hsdata, scan=None, modif_file=None, snr=None,
+            self, key, hsdata, scan=None, modif_file=None, sigma=None,
             seed=None, normalize=True, PCA_transform=False, PCA_th='auto',
             verbose=True):
         """Dev3D __init__ function.
@@ -296,8 +356,8 @@ class Dev3D(sig.Stem3D):
         modif_file: optional, None, str
             A .conf configuration file to remove rows, columns or dead
             pixels. Default is None for no modification.
-        snr: optional, None, float
-            The desired snr used to model noise.
+        sigma: optional, None, float
+            The desired standard deviation used to model noise.
             Dafault is None for no additional noise.
         seed: optional, None, int
             The random noise matrix seed.
@@ -323,118 +383,33 @@ class Dev3D(sig.Stem3D):
             If True, information will be displayed.
             Default is True.
         """
-        sig.Stem3D.__init__(self, hsdata, scan, verbose)
+        sig.Stem3D.__init__(self, hsdata.copy(), scan, verbose)
 
         # Checks is modification is required
         if modif_file is not None:
             self.correct_fromfile(modif_file)
 
-        # Save inputs
-        self.key = key
-        self.data = self.hsdata.data
-        self.ndata = None
-
-        self.normalize = normalize
-        self.verbose = verbose
-
         # Apply PCA if required
         self.PCA_operator = PCA.PcaHandler(
-            self.data, mask=self.scan.get_mask(),
+            self.hsdata.data, mask=self.scan.get_mask(),
             PCA_transform=PCA_transform, PCA_th=PCA_th, verbose=verbose)
 
         self.PCA_transform = PCA_transform
-        self.data = self.PCA_operator.Y_PCA
+        data = self.PCA_operator.Y_PCA
         self.PCA_info = self.PCA_operator.InfoOut
 
-        # Normalize if necessary
-        self.mean_std = None
-
-        if self.normalize:
-            mean = self.data.mean()
-            std = self.data.std()
-            self.data = (self.data - mean) / std
-            self.mean_std = (mean, std)
-
-        # Setup noise
-        self._snr = snr
-        self.sigma = None
-
-        # sets seed
-        self._seed = seed
-        self.seed = seed
-
-        if self._snr is not None:
-
-            # Computes the noise standard deviation based on the snr value.
-            P = np.mean(self.data ** 2)
-            self.sigma = np.sqrt(P * 10 ** (-self._snr / 10))
-
-            # Update noised image
-            self.set_ndata()
+        # Initialization as AbstractDev object.
+        AbstractDev.__init__(
+            self, key, data, self.scan.get_mask(), sigma, seed,
+            normalize, verbose)
 
         # Updates hs data
-        self.hsdata.data = self.data if self._snr is None else self.ndata
+        self.hsdata.data = self.data if self._sigma is None else self.ndata
         # In case the data is in the PCA space
         if self.PCA_transform:
             self.PCA_info['axis_name'] = self.hsdata.axes_manager[2].name
             self.hsdata.axes_manager[2].name = 'PCA'
             self.hsdata.axes_manager[2].size = self.data.shape[-1]
-
-    @property
-    def seed(self):
-        """seed property getter.
-        """
-        return self._seed
-
-    @seed.setter
-    def seed(self, value):
-        """seed property setter.
-        """
-        # Set seed value
-        npr.seed(self._seed)
-
-        # Update value
-        self._seed = value
-
-    @property
-    def snr(self):
-        """snr property getter.
-        """
-        return self._snr
-
-    @snr.setter
-    def snr(self, value):
-        """snr property setter.
-
-        When called, the noised image standard deviation is changed.
-        """
-        # get sigma
-        if value is not None:
-
-            # Compute new value
-            P = np.mean(self.data ** 2)
-            self.sigma = np.sqrt(P * 10 ** (-value / 10))
-
-            # Set new value
-            self._snr = value
-
-            # Update noised image
-            self.set_ndata()
-
-        else:
-            self.ndata = None
-            self._snr = None
-
-    def set_ndata(self):
-        """ Constructs the noised data.
-
-        It is also used to draw a new noise matrix.
-        """
-        # Draw noise
-        noise_matrix = npr.randn(*self.data.shape)
-
-        # Compute noised data.
-        self.ndata = self.data + self.sigma * noise_matrix
 
     def direct_transform(self, data):
         """Applies the Dev3D PCA transformation and normalization
@@ -513,7 +488,7 @@ class Dev3D(sig.Stem3D):
             PCA_transform = not self.PCA_transform
 
         # Updates hs data
-        self.hsdata.data = self.data if self._snr is None else self.ndata
+        self.hsdata.data = self.data if self._sigma is None else self.ndata
 
         return sig.Stem3D.restore(
             self, method, parameters, PCA_transform, PCA_th, verbose)
