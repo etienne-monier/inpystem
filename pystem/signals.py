@@ -295,7 +295,7 @@ class Scan:
             self.shape, self.ratio)
 
 
-class AbstractStemAcquisition(abc.ABC):
+class AbstractStem(abc.ABC):
     """Abstract STEM acquisition class.
 
     This is an *abstract* class, which mean you can not instantiate such
@@ -315,7 +315,7 @@ class AbstractStemAcquisition(abc.ABC):
     """
     def __init__(self, hsdata, scan=None, verbose=True):
         """
-        AbstractStemAcquisition constructor.
+        AbstractStem constructor.
 
         Arguments
         ---------
@@ -542,7 +542,7 @@ class AbstractStemAcquisition(abc.ABC):
         return '<{}>'.format(L2)
 
 
-class Stem2D(AbstractStemAcquisition):
+class Stem2D(AbstractStem):
     """2D image STEM acquisition.
 
     This defines a 2D STEM image with its associated sampling scan.
@@ -599,7 +599,7 @@ class Stem2D(AbstractStemAcquisition):
         return xhat_hs, InfoOut
 
 
-class Stem3D(AbstractStemAcquisition):
+class Stem3D(AbstractStem):
     """3D image STEM acquisition.
 
     This defines a 3D STEM image with its associated sampling scan.

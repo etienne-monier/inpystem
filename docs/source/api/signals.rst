@@ -12,10 +12,10 @@ The Scan class
    :members:
 
 
-The StemAcquisition classes
----------------------------
+The Stem classes
+----------------
 
-.. autoclass:: AbstractStemAcquisition
+.. autoclass:: AbstractStem
   :members:
 
 .. autoclass:: Stem2D

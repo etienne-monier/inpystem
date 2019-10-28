@@ -50,7 +50,7 @@ To sum up, the steps are:
 How to reconstruct my data
 --------------------------
 
-To reconstruct the data, the user should use the :meth:`~.signals.AbstractStemAcquisition.restore` method. Both :class:`~.signals.Stem2D` and :class:`~.signals.Stem3D` classes need the following arguments to restore their data:
+To reconstruct the data, the user should use the :meth:`~.signals.AbstractStem.restore` method. Both :class:`~.signals.Stem2D` and :class:`~.signals.Stem3D` classes need the following arguments to restore their data:
 
 * :code:`method` which is the method name (default is :code:`'interpolation'`),
 * :code:`parameters` which should be a dictionary with input parameters,
@@ -88,7 +88,7 @@ The reconstruction methods available
 All you need to know for each method is:
 
 * what the method do (of course you need to know a little about it),
-* his nickname to give to :meth:`~.signals.AbstractStemAcquisition.restore`,
+* his nickname to give to :meth:`~.signals.AbstractStem.restore`,
 * his parameters,
 * what informations are returned.
 
@@ -136,7 +136,7 @@ Interpolation
 
 The interpolation method calls linear, cubic or nearest neighbor interpolation.
 
-The method to give to the :meth:`~.signals.AbstractStemAcquisition.restore` method is :code:`interpolation`. The associated function is resp. :func:`~.restore.interpolation.interpolate`.
+The method to give to the :meth:`~.signals.AbstractStem.restore` method is :code:`interpolation`. The associated function is resp. :func:`~.restore.interpolation.interpolate`.
 
 The input parameters are:
 
@@ -162,7 +162,7 @@ This regularized least-square method solves the following optimization problem:
 
 where :math:`\mathbf{y}` are the corrupted data,  :math:`\Phi` is a subsampling operator and :math:`\Psi` is a 2D DCT operator. 
 
-The method to give to the :meth:`~.signals.AbstractStemAcquisition.restore` method is :code:`L1`. The associated function is resp. :func:`~.restore.LS_2D.L1_LS`.
+The method to give to the :meth:`~.signals.AbstractStem.restore` method is :code:`L1`. The associated function is resp. :func:`~.restore.LS_2D.L1_LS`.
 
 The input parameters are:
 
@@ -219,7 +219,7 @@ the set of all sampled pixels. The coefficient :math:`\alpha` is a coefficient w
 
 For more details, see :cite:`b-monier2018tci`.           
 
-The method to give to the :meth:`~.signals.AbstractStemAcquisition.restore` method is :code:`3S`. The associated function is resp. :func:`~.restore.LS_3D.SSS`.
+The method to give to the :meth:`~.signals.AbstractStem.restore` method is :code:`3S`. The associated function is resp. :func:`~.restore.LS_3D.SSS`.
 
 The input parameters are:
 
@@ -262,7 +262,7 @@ the set of all sampled pixels.
 
 For more details, see :cite:`b-monier2018tci`.           
 
-The method to give to the :meth:`~.signals.AbstractStemAcquisition.restore` method is :code:`SNN`. The associated function is resp. :func:`~.restore.LS_3D.SNN`.
+The method to give to the :meth:`~.signals.AbstractStem.restore` method is :code:`SNN`. The associated function is resp. :func:`~.restore.LS_3D.SNN`.
 
 The input parameters are:
 
@@ -303,7 +303,7 @@ where :math:`\mathbf{Y}` are the corrupted data,  :math:`\mathbf{D}`
 is a spatial finite difference operator and :math:`\mathcal{I}` is
 the set of all sampled pixels.
 
-The method to give to the :meth:`~.signals.AbstractStemAcquisition.restore` method is :code:`CLS`. The associated function is resp. :func:`~.restore.LS_CLS.CLS`.
+The method to give to the :meth:`~.signals.AbstractStem.restore` method is :code:`CLS`. The associated function is resp. :func:`~.restore.LS_CLS.CLS`.
 
 The input parameters are:
 
@@ -327,7 +327,7 @@ This algorithms consists in applying CLS to restore the data and
 determine the data support in DCT basis. A post-least square
 optimization is performed to reduce the coefficients bias.
 
-The method to give to the :meth:`~.signals.AbstractStemAcquisition.restore` method is :code:`Post_LS_CLS`. The associated function is resp. :func:`~.restore.LS_CLS.Post_LS_CLS`.
+The method to give to the :meth:`~.signals.AbstractStem.restore` method is :code:`Post_LS_CLS`. The associated function is resp. :func:`~.restore.LS_CLS.Post_LS_CLS`.
 
 The input parameters are:
 
@@ -350,9 +350,11 @@ ITKrMM and wKSVD
 
 Weighted K-SVD (see :cite:`b-mairal2008sparse`) and Iterative Thresholding and K residual Means for Masked data (see :cite:`b-naumova2018fast`) methods.
 
-The wKSVD and ITKrMM algorithms share a lots of their code so that their input and output are the same. Though, two implementations exist to run these algorithms: one with python (:code:`ITKrMM` and :code:`wKSVD` methods) and one with maltab (:code:`ITKrMM_matlab` and :code:`wKSVD_matlab` methods). The codes were first in matlab to be translated afterwards into python. Nothing distinguish them but for wKSVD where matlab is faster. The only problem is that you should have the :code:`matlab` command in your system path.
+The wKSVD and ITKrMM algorithms share a lots of their code so that their input and output are the same. Though, two implementations exist to run these algorithms: one with python (:code:`ITKrMM` and :code:`wKSVD` methods) and one with maltab (:code:`ITKrMM_matlab` and :code:`wKSVD_matlab` methods). The original Matlab codes are broadcasted by "Karin Schnass"_. They were translated afterwards into python. Nothing distinguish them but for wKSVD where matlab is faster. The only problem is that you should have the :code:`matlab` command in your system path.
 
-The methods to give to the :meth:`~.signals.AbstractStemAcquisition.restore` method are :code:`ITKrMM`, :code:`wKSVD`, :code:`ITKrMM_matlab` or :code:`wKSVD_matlab`. The associated functions are resp. :func:`~.restore.DL_ITKrMM.ITKrMM`, :func:`~.restore.DL_ITKrMM.wKSVD`, :func:`~.restore.DL_ITKrMM.ITKrMM_matlab` and :func:`~.restore.DL_ITKrMM.wKSVD_matlab`.
+.. _Karin Schnass: https://www.uibk.ac.at/mathematik/personal/schnass/
+
+The methods to give to the :meth:`~.signals.AbstractStem.restore` method are :code:`ITKrMM`, :code:`wKSVD`, :code:`ITKrMM_matlab` or :code:`wKSVD_matlab`. The associated functions are resp. :func:`~.restore.DL_ITKrMM.ITKrMM`, :func:`~.restore.DL_ITKrMM.wKSVD`, :func:`~.restore.DL_ITKrMM.ITKrMM_matlab` and :func:`~.restore.DL_ITKrMM.wKSVD_matlab`.
 
 The input parameters are:
 
@@ -376,9 +378,11 @@ BPFA
 
 Beta Process Factor Analysis algorithm (see :cite:`b-xing2012siam`).
 
-As for wKSVD and ITKrMM, BPFA is coded under Matlab. The python code just calls it, so matlab should be in the path system so that the :code:`matlab` command could be called from the command line.
+As for wKSVD and ITKrMM, BPFA is based on a Matlab code from `Zhengming Xing`_ (these codes were broadcasted without any license). The python code just calls it, so matlab should be in the path system so that the :code:`matlab` command could be called from the command line.
 
-The method to give to the :meth:`~.signals.AbstractStemAcquisition.restore` method is :code:`BPFA_matlab`. The associated function is resp. :func:`~.restore.DL_BPFA.BPFA_matlab`.
+.. _Zhengming Xing: https://zmxing.github.io/
+
+The method to give to the :meth:`~.signals.AbstractStem.restore` method is :code:`BPFA_matlab`. The associated function is resp. :func:`~.restore.DL_BPFA.BPFA_matlab`.
 
 The input parameters are:
 

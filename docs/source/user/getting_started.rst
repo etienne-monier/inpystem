@@ -222,7 +222,7 @@ Other arguments (such as the scan pattern ratio) can be passed to the two load f
 What about restoration ?
 ------------------------
 
-Well, everything was loaded and is ready for reconstruction. Lets us consider that your acquisition was partially sampled with a ratio of 0.2. So, to use any reconstruction method, use the :meth:`~.signals.AbstractStemAcquisition.restore` method of pystem objects.
+Well, everything was loaded and is ready for reconstruction. Lets us consider that your acquisition was partially sampled with a ratio of 0.2. So, to use any reconstruction method, use the :meth:`~.signals.AbstractStem.restore` method of pystem objects.
 
 The methods to reconstruct the data include nearest neighbor interpolation, regularized least-square and dictionary learning. Let's try with an example data (pystem has three dataset that can be loaded easily, this will be mentioned in).
 

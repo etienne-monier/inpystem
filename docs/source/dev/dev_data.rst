@@ -3,9 +3,13 @@ Dev data objects
 
 Basically, a signal processing algorithm development aims at testing some method on synthetic (i.e. noise-free) data that has been manually degraded. As the truth image is known, metrics can be computed to test and compare the method.
 
-To that end, two data objects :class:`~.dev.Dev2D` and :class:`~.dev.Dev3D` have been developed. These are children classes from :class:`~.signals.Stem2D` and :class:`~.signals.Stem3D` (themselves are children of the basic data structure :class:`~.signals.AbstractStemAcquisition`).
+To that end, two data objects :class:`~.dev.Dev2D` and :class:`~.dev.Dev3D` have been developed. These are children classes from :class:`~.signals.Stem2D` and :class:`~.signals.Stem3D` (themselves are children of the basic data structure :class:`~.signals.AbstractStem`).
 
-.. todo:: Graphviz here.
+.. figure:: ../_static/uml.png
+    :width: 400px
+    :align: center
+
+    A simple UML diagram.
 
 
 These objects basically work as non-dev data objects: 
@@ -13,7 +17,7 @@ These objects basically work as non-dev data objects:
 * they are initialized with data and a Scan object,
 * loading them can be done with the same functions as for non-dev data,
 * they can be corrected with a configuration file,
-* they can be reconstructed using the basic :meth:`~.signals.AbstractStemAcquisition.restore` of :class:`~.signals.AbstractStemAcquisition`,
+* they can be reconstructed using the basic :meth:`~.signals.AbstractStem.restore` of :class:`~.signals.AbstractStem`,
 * they can be plotted with the same tools.
 
 Their difference is that:
@@ -38,7 +42,7 @@ The Dev data objects could be initialized manually with the same arguments as fo
 In addition to these arguments, a required input is :code:`key` which is a small descriptive keyword to help referencing. Other optional inputs are:
 
 * :code:`modif_file`: an configuration file which is sent to correction function,
-* :code:`snr`: the desired snr in case additional noise is desired, 
+* :code:`sigma`: the desired noise standard deviation in case additional noise is desired, 
 * :code:`seed`: the noise seed to have reproducible data,
 * :code:`normalized`: if set to True, the data are normalized at initialization.
 
@@ -51,7 +55,7 @@ In addition to these arguments, a required input is :code:`key` which is a small
     Correcting STEM acquisition...
     >>> scan_shape = stem2d_data.scan.shape
     >>> scan = pystem.Scan.random(shape=scan_shape, ratio=0.5)
-    >>> dev_data = pystem.Dev2D('my-dev-data', hsdata=stem2d_data.hsdata, scan=scan, snr=0.1, seed=0)
+    >>> dev_data = pystem.Dev2D('my-dev-data', hsdata=stem2d_data.hsdata, scan=scan, sigma=0.5, seed=0)
     Creating STEM acquisition...
     >>> dev_data
     <Dev2D, title: HR-sample, dimensions: (|113, 63), sampling ratio: 0.50>
@@ -62,12 +66,12 @@ With load functions
 
 The :func:`~.dataset.load_file`, :func:`~.dataset.load_key` and :func:`~.dataset.load_example` functions also enable to load development data. To that end, the user just has to use the :code:`dev` input which is a dictionary. This dictionary should store the desired inputs:
 
-* for 2D data: :code:`modif_file`, :code:`snr`, :code:`seed` and :code:`normalized`
-* for 2D data: :code:`PCA_transform`, :code:`PCA_th`, :code:`modif_file`, :code:`snr`, :code:`seed` and :code:`normalized`
+* for 2D data: :code:`modif_file`, :code:`sigma`, :code:`seed` and :code:`normalized`
+* for 2D data: :code:`PCA_transform`, :code:`PCA_th`, :code:`modif_file`, :code:`sigma`, :code:`seed` and :code:`normalized`
 
 .. code-block:: python
 
-    >>> dev = {'snr': 0.1, 'seed': 0}
+    >>> dev = {'sigma': 0.5, 'seed': 0}
     >>> pystem.load_example('HR-sample', 2, dev=dev, scan_ratio=0.5, scan_seed=1)
     Reading configuration file ...
     Generating data ...
@@ -86,7 +90,7 @@ Contrary to Stem2D and Stem3D objects, development objects work with numpy techn
 More precisely, the data are stored twice or three times under the attributes:
 
 * :attr:`~.dev.Dev2D.data` which stores the noise-free data,
-* :attr:`~.dev.Dev2D.ndata` which stores the noisy data (in case :attr:`~.dev.Dev2D.snr` is None and no noise-corruption procedure was applied, this attribute is None),
+* :attr:`~.dev.Dev2D.ndata` which stores the noisy data (in case :attr:`~.dev.AbstractDev.sigma` is None and no noise-corruption procedure was applied, this attribute is None),
 * :attr:`~.dev.Dev2D.hsdata` which stores the data as an HyperSpy data.
 
 The last attribute only exist to send the data into restoration procedures. To display noisy or noise-free data, prefer the two first attributes.
@@ -111,7 +115,7 @@ In the case of the :class:`~.dev.Dev3D` class, these parameters are given at ini
 
 .. code-block:: python
 
-    >>> dev = {'snr': 0.1, 'PCA_transform': False}
+    >>> dev = {'sigma': 0.5, 'PCA_transform': False}
     >>> data = pystem.load_example('HR-sample', 3, dev=dev)
     Reading configuration file ...
     Generating data ...
@@ -125,22 +129,22 @@ In the case of the :class:`~.dev.Dev3D` class, these parameters are given at ini
     Restoring the 3D STEM acquisition...
     -- Interpolation reconstruction algorithm --
     - PCA transformation -
-    Dimension reduced from 1510 to 3.
-    Estimated sigma^2 is 1.01e+00.
-    Done in 1.26s.
+    Dimension reduced from 1510 to 4.
+    Estimated sigma^2 is 2.76e-01.
+    Done in 1.27s.
     -
-    Done in 0.04s.
+    Done in 0.05s.
     ---
 
     >>> info['PCA_info']['H'].shape  # The PCA basis used for restoration
-    (1510, 3)
+    (1510, 4)
 
 
 In the case of True :attr:`~.dev.Dev3D.PCA_transform` at initialization, a PCA procedure is executed at initialization and the :attr:`~.dev.Dev3D.data` (and possibly :attr:`~.dev.Dev3D.ndata`) data are reduced in the last axis direction. Additional information is stored in the :attr:`~.dev.Dev3D.PCA_info` attribute. In such case, the user should use the :meth:`~.dev.Dev3D.restore` method without giving the :code:`PCA_transform` argument.
 
 .. code-block:: python
 
-    >>> dev = {'snr': 0.1, 'PCA_transform': True}
+    >>> dev = {'sigma': 0.5, 'PCA_transform': True}
     >>> data = pystem.load_example('HR-sample', 3, dev=dev)
     Reading configuration file ...
     Generating data ...
@@ -149,13 +153,13 @@ In the case of True :attr:`~.dev.Dev3D.PCA_transform` at initialization, a PCA p
     - PCA transformation -
     Dimension reduced from 1510 to 290.
     Estimated sigma^2 is 1.43e+03.
-    Done in 1.22s.
+    Done in 1.27s.
     -
 
     >>> outdata, info = data.restore()
     Restoring the 3D STEM acquisition...
     -- Interpolation reconstruction algorithm --
-    Done in 12.11s.
+    Done in 11.12s.
     ---
 
     >>> 'PCA_info' in info
@@ -181,7 +185,7 @@ These methods incorporate also normalization procedure inside. This means that t
     >>> import pystem
     
     # Case with non-PCA-initialized object
-    >>> dev = {'snr': 0.1, 'PCA_transform': False, 'normalize': False}
+    >>> dev = {'sigma': 0.5, 'PCA_transform': False, 'normalize': False}
     >>> data = pystem.load_example('HR-sample', 3, dev=dev)
     >>> direct_data = data.direct_transform(data.data)  # Performing direct transformation to data
     >>> inverse_data = data.inverse_transform(data.data)  # Performing inverse transformation to data
@@ -189,7 +193,7 @@ These methods incorporate also normalization procedure inside. This means that t
     >>> npt.assert_allclose(data.data, direct_data)  # Equal
     >>> npt.assert_allclose(data.data, inverse_data)  # Equal
 
-    >>> dev = {'snr': 0.1, 'PCA_transform': False}  # Non-normalized here
+    >>> dev = {'sigma': 0.5, 'PCA_transform': False}  # Non-normalized here
     >>> data = pystem.load_example('HR-sample', 3, dev=dev)
     >>> direct_data = data.direct_transform(data.data)
     >>> inverse_data = data.inverse_transform(direct_data)
@@ -197,7 +201,7 @@ These methods incorporate also normalization procedure inside. This means that t
     >>> npt.assert_allclose(data.data, inverse_data)  # Equal: direct, then inverse is identity :)
 
     # Case with PCA-initialized object
-    >>> dev = {'snr': 0.1, 'PCA_transform': True}
+    >>> dev = {'sigma': 0.5, 'PCA_transform': True}
     >>> data = pystem.load_example('HR-sample', 3, dev=dev)
     >>> inverse_data = data.inverse_transform(data.data)
     >>> direct_data = data.direct_transform(inverse_data)
