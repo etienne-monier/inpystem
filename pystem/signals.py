@@ -14,6 +14,8 @@ import hyperspy.api as hs
 from . import restore
 from .tools import misc
 
+_logger = logging.getLogger(__name__)
+
 
 def search_nearest(pix, mask):
 
@@ -156,7 +158,7 @@ class Scan:
 
         if N > self.path_0.size:
             N = self.path_0.size
-            logging.warn(
+            _logger.warning(
                 'Input ratio is higher than higher maximal ratio'
                 ' ({:.3f}). Ratio is set to the maximal value.'.format(
                     self.path_0.size/(m*n)))

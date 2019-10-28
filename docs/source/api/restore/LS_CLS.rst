@@ -1,4 +1,4 @@
-pystem.restore.LS_3D module
+pystem.restore.LS_CLS module
 ===========================
 
 .. automodule:: pystem.restore.LS_CLS

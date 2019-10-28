@@ -22,3 +22,6 @@ examples/
 
 # Methods InOut
 *.mat
+
+# Log file
+*.log

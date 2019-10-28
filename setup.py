@@ -55,7 +55,9 @@ setuptools.setup(
     packages=['pystem',
               'pystem.restore',
               'pystem.tools',
-              'pystem.tests'],
+              'pystem.tests',
+              'pystem.tests.restore',
+              'pystem.tests.tools'],
     package_data={
         'pystem': get_data_files()
         },

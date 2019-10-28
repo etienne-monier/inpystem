@@ -13,6 +13,8 @@ import hyperspy.api as hs
 from . import dev as devm
 from . import signals as sig
 
+_logger = logging.getLogger(__name__)
+
 
 def read_data_path():
     """Read the saved data folder path.
@@ -46,7 +48,7 @@ def read_data_path():
 
         # If the program gets here, that means that the file is
         # corrupted.
-        logging.error(
+        _logger.error(
             'The dataset PATH file is corrupted.'
             'Please define one new with '
             'pystem.dataset.set_data_path.'
@@ -54,7 +56,7 @@ def read_data_path():
     else:
         # If the program gets here, that means that no data path is
         # saved.
-        logging.warning(
+        _logger.warning(
             'No dataset PATH has been defined. Please define one with '
             'pystem.dataset.set_data_path.')
 
@@ -99,7 +101,7 @@ def set_data_path(path):
             res = config.write(configfile)
     else:
         # The input path is invalid. Nothing is saved.
-        logging.warning(
+        _logger.warning(
             '{} is not a directory.'.format(path))
         res = 0
 

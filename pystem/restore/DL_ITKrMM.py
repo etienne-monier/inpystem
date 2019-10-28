@@ -23,6 +23,8 @@ from ..tools import matlab_interface as matlab
 from ..tools import sec2str
 from ..tools import metrics
 
+_logger = logging.getLogger(__name__)
+
 
 def forward_patch_transform(ref, w):
     """Transforms data from 2D/3D array to array whose shape is (w**2, N)
@@ -347,7 +349,7 @@ class Dico_Learning_Executer:
         self.verbose = verbose
 
         if CLS_init is not None and Y.ndim != 3:
-            logging.warning(
+            _logger.warning(
                 'Dico learning will not be initialized with CLS as input data '
                 'is not 3D. Random init used.')
 
@@ -1384,12 +1386,12 @@ def itkrmm_core(
         K = K - L
 
     if N < K-1:
-        logging.warning(
+        _logger.warning(
             'Less training signals than atoms: trivial solution is data.')
         return data, None
 
     if init is not None and not np.array_equal(init.shape, np.array([d, K])):
-        logging.warning(
+        _logger.warning(
             'Initialisation does not match dictionary shape. '
             'Random initialisation used.')
         init = None
@@ -1760,13 +1762,13 @@ def wKSVD_core(
     K_DC = 1 if preserve_DC else 0
 
     if N < K-1:
-        logging.warning(
+        _logger.warning(
             'Less training signals than atoms: trivial solution is data.')
         return data, None
 
     if init is not None and not np.array_equal(
             init.shape, np.array([d, K - L - K_DC])):
-        logging.warning(
+        _logger.warning(
             'Initialisation does not match dictionary shape. '
             'Random initialisation used.')
         init = None
