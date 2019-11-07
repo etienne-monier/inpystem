@@ -18,9 +18,35 @@ _logger = logging.getLogger(__name__)
 
 
 def search_nearest(pix, mask):
+    """Searches the non-zeros pixels of mask which are near to the pix
+    pixel.
+
+    The algorithm beggins by searching for non-zero elements around the
+    pixel whose index is pix. If there are non-zero elements, their
+    positions are returned. Otherwise, the searching horizon rises by
+    one. Then, the algorithm goes on.
+
+    The algorithm stops automatically at an horizon of 100 pixels. In
+    such case, an error is sent to the logger and None is returned.
+
+    Arguments
+    ---------
+    pix: int
+        The position index of the pixel whose neighbors should be found.
+    mask: (m, n) numpy array
+        The sampling mask (1 for sampled pixel and 0 otherwise).
+
+    Returns
+    -------
+    None, 2-tuple
+        None is returned in case no neighbor was found. Otherwise, a
+        tuple (y, x) is returned where x (resp. y) are the columns
+        (resp. rows) index of the pixel neighbors
+.    """
 
     m, n = mask.shape
     y, x = np.unravel_index(pix, (m, n))
+    mask[y, x] = 0
 
     Lmax = 100
     flag = True
@@ -34,10 +60,15 @@ def search_nearest(pix, mask):
         submask = pmask[py-L:py+L+1, px-L:px+L+1]
         if submask.sum() > 0:
             flag = False
+        else:
+            if L < Lmax:
+                L += 1
+            else:
+                return None
 
     nnz = submask.nonzero()
 
-    return [nnz[0] + (y-L), nnz[1] + (x-L)]
+    return (list(nnz[0] + (y-L)), list(nnz[1] + (x-L)))
 
 
 class Scan:
@@ -61,8 +92,8 @@ class Scan:
         The initial sampling path to be kept in case the ratio is changed.
     ratio: float
         The current :code:`ratio` value such that :code:`path`has size
-        :code:`ratio*m*n`. This attribute can be changed with
-        automatic update of :code:`path`.
+        :code:`ratio*m*n`. Changing this attribute automaticaly updates
+        :code:`path`.
 
     Note
     -----
@@ -85,7 +116,7 @@ class Scan:
         j = path % n
     """
 
-    def __init__(self, shape, path, ratio=1):
+    def __init__(self, shape, path, ratio=None):
         """Scan pattern constructor.
 
         Arguments
@@ -95,6 +126,9 @@ class Scan:
             the number of columns.
         path : tuple, numpy array
             The sampling path. See class Notes for more detail.
+        ratio: optional, float
+            The ratio of sampled pixels. This should lay between 0 (excl.)
+            and 1. Default is None for full sampling.
         """
         if len(tuple(shape)) != 2:
             raise ValueError('Invalid shape parameter length.')
@@ -149,12 +183,17 @@ class Scan:
             The new ratio value.
         """
 
-        if (value > 1 or value <= 0):
+        if value is not None and (value > 1 or value <= 0):
             raise ValueError('The ratio should be in the ]0,1] segment.')
 
         # get sample size
         m, n = self.shape
-        N = int(m * n * value)  # Number of required samples.
+
+        if value is not None:
+            N = int(m * n * value)  # Number of required samples.
+        else:
+            N = self.path_0.size
+            self._ratio = N / (m*n)
 
         if N > self.path_0.size:
             N = self.path_0.size
@@ -170,7 +209,7 @@ class Scan:
         self._ratio = N / (m*n)
 
     @classmethod
-    def from_file(cls, data_file, ratio=1):
+    def from_file(cls, data_file, ratio=None):
         """ Creates a scan pattern object from a data file
         (such as .dm3, .dm4 or npz).
 
@@ -191,27 +230,33 @@ class Scan:
             The data file path.
         ratio: optional, float
             The ratio of sampled pixels. This should lay between 0 (excl.)
-            and 1. Default is 1 for full sampling.
+            and 1. Default is None for full sampling.
 
         Returns
         -------
         Scan object
             The scan pattern.
         """
+        _logger.info('Loading Scan file.')
+
         # Get file extension
         p = pathlib.Path(data_file)
         file_ext = p.suffix
 
         # Digital Micrograph file
         if (file_ext == '.dm3' or file_ext == '.dm4'):
+            _logger.info('Scan file type is {}.'.format(file_ext))
+
             data = hs.load(str(p)).data
 
             if data.ndim == 3:
+                _logger.info('{} scan file type is A.'.format(file_ext))
                 m, n, _ = data.shape
                 x = data[:, :, 0].flatten()-1
                 y = data[:, :, 1].flatten()-1
 
             elif data.ndim == 2:
+                _logger.info('{} scan file type is B.'.format(file_ext))
                 m, n = data.shape
                 x = data.flatten() % n
                 y = data.flatten() // n
@@ -225,6 +270,8 @@ class Scan:
 
         # Numpy file
         elif (file_ext == '.npz'):
+            _logger.info('Scan file type is .npz.')
+
             data = np.load(str(data_file))
             m, n = int(data['m']), int(data['n'])
             path = data['path']
@@ -232,7 +279,7 @@ class Scan:
         return cls((m, n), path, ratio=ratio)
 
     @classmethod
-    def random(cls, shape, ratio=1, seed=None):
+    def random(cls, shape, ratio=None, seed=None):
         """ Creates a random scan pattern object.
 
         Arguments
@@ -241,7 +288,7 @@ class Scan:
             The data spatial shape.
         ratio: optional, float
             The ratio of sampled pixels. It should lay between 0 (excluded)
-            and 1. Default is 1 for full sampling.
+            and 1. Default is None for full sampling.
         seed: optional, int
             Seed for random sampling.
             Default is None for random seed.
@@ -251,6 +298,8 @@ class Scan:
         Scan object
             The scan pattern.
         """
+        _logger.info('Random scan generated.')
+
         if seed is not None:
             np.random.seed(seed)
 
@@ -332,7 +381,7 @@ class AbstractStem(abc.ABC):
             print('Creating STEM acquisition...')
 
         if issubclass(type(hsdata), hs.signals.BaseSignal):
-            self.hsdata = hsdata
+            self.hsdata = hsdata.copy()
         else:
             raise ValueError('Invalid input data.')
 
@@ -384,11 +433,17 @@ class AbstractStem(abc.ABC):
         if self.verbose:
             print('Correcting STEM acquisition...')
 
+        _logger.info('Correcting STEM data.')
+
         # Get Numpy data
         data = self.hsdata.data
         m, n = data.shape[:2]
 
         if dpixels is not None:
+
+            # Preparing the sampling mask before searching for neighbor
+            # pixels.
+            #
 
             # Valid path array with non-dead sampled pixels.
             path = self.scan.path_0[
@@ -397,19 +452,38 @@ class AbstractStem(abc.ABC):
             # Position of these non-dead sampled pixels.
             valid_pos = np.unravel_index(path, (m, n))
 
+            mask0 = np.zeros((m, n))
+            mask0[valid_pos] = 1
+
+            # Remove rows/columns that will be removed afterwards.
             mask = np.zeros((m, n))
-            mask[valid_pos] = 1
+            mask[rows, cols] = mask0[rows, cols]
 
             for dpix in dpixels:
 
-                pixels = search_nearest(dpix, mask)
-                y, x = np.unravel_index(dpix, (m, n))
+                if np.sum(np.isin(self.scan.path_0, dpixels)) == 0:
+                    # The dead pixel were not sampled.
+                    _logger.warning(
+                        'The dead pixel at position {} was not sampled and '
+                        'was ignored for correction.'.format(dpix))
+                    continue
 
-                if data.ndim == 2:
-                    data[y, x] = np.mean(data[pixels[0], pixels[1]])
+                # Search for the neighbors.
+                pixels = search_nearest(dpix, mask)
+
+                if pixels is None:
+                    _logger.error(
+                        'No sampled pixel were found near enough '
+                        'to the dead pixel at position {}. Correction '
+                        'for this pixel was aborted.'.format(dpix))
                 else:
-                    data[y, x, :] = np.mean(
-                        data[pixels[0], pixels[1], :], axis=0)
+                    y, x = np.unravel_index(dpix, mask.shape)
+
+                    if data.ndim == 2:
+                        data[y, x] = np.mean(data[pixels[0], pixels[1]])
+                    else:
+                        data[y, x, :] = np.mean(
+                            data[pixels[0], pixels[1], :], axis=0)
 
         # Remove missing columns and rows.
         #
@@ -554,7 +628,7 @@ class Stem2D(AbstractStem):
     scan : Path object
         The sampling scan object associated with the data.
     """
-    def restore(self, method='interpolation', parameters={}, verbose=True):
+    def restore(self, method='interpolation', parameters={}):
         """Restores the acquisition.
 
         It performs denoising in the case of full scan and performs
@@ -573,6 +647,9 @@ class Stem2D(AbstractStem):
         else:
             mask = np.ones(data.shape, dtype=bool)
 
+        _logger.info('Restoration with method {} was intended.'.format(
+            method))
+
         method_dico = {
             'INTERPOLATION': restore.interpolation.interpolate,
             'L1': restore.LS_2D.L1_LS,
@@ -587,7 +664,7 @@ class Stem2D(AbstractStem):
         if method_u in method_dico:
 
             xhat, InfoOut = method_dico[method_u](
-                Y=data, mask=mask, verbose=verbose, **parameters)
+                Y=data, mask=mask, verbose=self.verbose, **parameters)
 
         else:
             raise ValueError('Unknown method {}.'.format(method))
@@ -612,7 +689,7 @@ class Stem3D(AbstractStem):
         The sampling scan object associated with the data.
     """
     def restore(self, method='interpolation', parameters={},
-                PCA_transform=True, PCA_th='auto', verbose=True):
+                PCA_transform=True, PCA_th='auto'):
         """Restores the acquisition.
 
         It performs denoising in the case of full scan and performs
@@ -641,6 +718,9 @@ class Stem3D(AbstractStem):
         else:
             mask = np.ones(data.shape[:2], dtype=bool)
 
+        _logger.info('Restoration with method {} was intended.'.format(
+            method))
+
         method_dico = {
             'INTERPOLATION': restore.interpolation.interpolate,
             '3S': restore.LS_3D.SSS,
@@ -658,7 +738,7 @@ class Stem3D(AbstractStem):
         if method_u in method_dico:
 
             xhat, InfoOut = method_dico[method_u](
-                Y=data, mask=mask, verbose=verbose,
+                Y=data, mask=mask, verbose=self.verbose,
                 PCA_transform=PCA_transform, PCA_th=PCA_th,
                 **parameters)
 

@@ -11,8 +11,11 @@ For further informations about the FISTA algorithm, have a look at [1]_.
 
 import time
 import math
+import logging
 
 import numpy as np
+
+_logger = logging.getLogger(__name__)
 
 
 class FISTA:
@@ -111,6 +114,7 @@ class FISTA:
             raise ValueError('Input verbose parameter is not boolean.')
 
         # Save attributes for methods
+        _logger.info('Setting up new FISTA optimizer.')
 
         self.f = f
         self.df = df
@@ -190,6 +194,7 @@ class FISTA:
                         print(
                             'Iterations stopped as the functional is allclose'
                             ' to 0.')
+                    return False
                 else:
                     return critera > self.lim
 
@@ -211,6 +216,7 @@ class FISTA:
         * :code:`time`: Execution time.
 
         """
+        _logger.info('Starting FISTA optimization.')
 
         start = time.time()
 
@@ -268,5 +274,7 @@ class FISTA:
 
         # Output info
         InfoOut = {'E': self.E, 'time': time.time() - start}
+
+        _logger.info('FISTA optimization finished.')
 
         return X, InfoOut

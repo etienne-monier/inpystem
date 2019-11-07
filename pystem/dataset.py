@@ -85,7 +85,10 @@ def set_data_path(path):
         returns True. Else, it returns False.
     """
     # We create a pathlib path from input.
-    p = pathlib.Path(path)
+    if isinstance(path, str):
+        p = pathlib.Path(path)
+    else:
+        p = path
 
     # This is the file that stores the data path.
     file_path = pathlib.Path(__file__).parent / 'data' / 'path.conf'
@@ -102,14 +105,14 @@ def set_data_path(path):
     else:
         # The input path is invalid. Nothing is saved.
         _logger.warning(
-            '{} is not a directory.'.format(path))
+            '{} is not a directory.'.format(str(p)))
         res = 0
 
     return res != 0
 
 
 def load_file(
-        file, ndim, scan_ratio=1, scan_seed=None, dev=None, verbose=True):
+        file, ndim, scan_ratio=None, scan_seed=None, dev=None, verbose=True):
     """This function loads a STEM acquisition based on a configuration
     .conf file path.
 
@@ -137,8 +140,8 @@ def load_file(
         The configuration file path.
     ndim: int
         The data dimension. Should be 2 or 3.
-    scan_ratio: optional, float
-        The Path object ratio. Default is 1.
+    scan_ratio: optional, None, float
+        The Path object ratio. Default is None for full sampling.
     scan_seed: int
         The seed in case of random scan initialization.
         Default is None for random seed.
@@ -172,6 +175,7 @@ def load_file(
     config = configparser.ConfigParser(
         converters={'list': lambda text: eval(text)})
     config.read(file)
+    _logger.info('Read configuration file: {}.'.format(str(file)))
 
     # DATA
     #
@@ -245,6 +249,9 @@ def load_file(
         print('Generating data ...')
 
     if dev is None:
+
+        _logger.info('Generating {}D data from file.'.format(ndim))
+
         if ndim == 2:
             obj = sig.Stem2D(data, scan, verbose)
         else:
@@ -255,6 +262,9 @@ def load_file(
         obj.correct_fromfile(file)
 
     else:
+
+        _logger.info('Generating {}D dev data from file.'.format(ndim))
+
         key = file.stem
         if ndim == 2:
             obj = devm.Dev2D(
@@ -267,7 +277,7 @@ def load_file(
 
 
 def load_key(
-        key, ndim, scan_ratio=1, scan_seed=None, dev=None, verbose=True):
+        key, ndim, scan_ratio=None, scan_seed=None, dev=None, verbose=True):
     """This function loads a STEM acquisition based on a key.
 
     A key is a string which can be:
@@ -310,8 +320,8 @@ def load_key(
         The data key.
     ndim: int
         The data dimension. Should be 2 or 3.
-    scan_ratio: optional, float
-        The Path object ratio. Default is 1.
+    scan_ratio: optional, None, float
+        The Path object ratio. Default is None for full sampling.
     scan_seed: int
         The seed in case of random scan initialization.
         Default is None for random seed.
@@ -363,11 +373,14 @@ def load_key(
 
     if verbose:
         print('found')
+
+    _logger.info('Loading data from key: {}.'.format(key))
+
     return load_file(file, ndim, scan_ratio, scan_seed, dev, verbose)
 
 
 def load_example(
-        key, ndim, scan_ratio=1, scan_seed=None, dev=None, verbose=True):
+        key, ndim, scan_ratio=None, scan_seed=None, dev=None, verbose=True):
     """Loads example dataset.
 
     The input key can be:
@@ -404,8 +417,8 @@ def load_example(
         The input key.
     ndim: int
         The data dimension. Should be 2 or 3.
-    scan_ratio: optional, float
-        The Path object ratio. Default is 1.
+    scan_ratio: optional, None, float
+        The Path object ratio. Default is None for full sampling.
     scan_seed: int
         The seed in case of random scan initialization.
         Default is None for random seed.
@@ -438,6 +451,8 @@ def load_example(
 
     else:
         raise ValueError('Example data {} does not exist.'.format(key))
+
+    _logger.info('Loading example data: {}.'.format(key))
 
     stem = load_file(data_path, ndim, scan_ratio, scan_seed, dev, verbose)
     stem.hsdata.metadata.General.title = key

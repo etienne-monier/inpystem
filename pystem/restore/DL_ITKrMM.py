@@ -684,7 +684,10 @@ class Dico_Learning_Executer:
                 dirpath / 'ITKrMM_for_python.m',
                 Dico)
 
-            data['dico'] = np.hstack((data['lrc'], data['dico']))
+            lrc = data['lrc']
+            data['dico'] = np.hstack((
+                lrc if lrc.ndim == 2 else lrc[:, np.newaxis],
+                data['dico']))
 
             return data
 
@@ -748,7 +751,11 @@ class Dico_Learning_Executer:
             data = matlab.matlab_interface(
                 dirpath / 'ITKrMM_CLS_init_for_python.m',
                 Dico)
-            data['dico'] = np.hstack((data['lrc'], data['dico']))
+
+            lrc = data['lrc']
+            data['dico'] = np.hstack((
+                lrc if lrc.ndim == 2 else lrc[:, np.newaxis],
+                data['dico']))
 
         elif method == 'wKSVD':
             data = matlab.matlab_interface(

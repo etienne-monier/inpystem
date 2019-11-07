@@ -90,16 +90,11 @@ class AbstractDev(abc.ABC):
 
         if self.normalize:
 
-            # mask is extended to 3D if data are 3D.
-            maskn = mask if data.ndim == 2 else np.tile(
-                mask[:, :, np.newaxis], [1, 1, data.shape[2]])
-            # The masked data.
-            m_data = (self.data * maskn).flatten()
-            # Sampled elements location
-            nnz = np.flatnonzero(m_data)
-            # Data that can be used for mean and std.
-            correct_data = m_data[nnz]
-
+            # The sampled data position.
+            y, x = np.nonzero(mask)
+            # Correct data.
+            correct_data = self.data[y, x] if data.ndim == 2 else \
+                self.data[y, x, :]
             mean = correct_data.mean()
             std = correct_data.std()
 
@@ -244,7 +239,7 @@ class Dev2D(sig.Stem2D, AbstractDev):
             If True, information will be displayed.
             Default is True.
         """
-        sig.Stem2D.__init__(self, hsdata.copy(), scan, verbose)
+        sig.Stem2D.__init__(self, hsdata, scan, verbose)
 
         # Checks is modification is required
         if modif_file is not None:
@@ -383,7 +378,7 @@ class Dev3D(sig.Stem3D, AbstractDev):
             If True, information will be displayed.
             Default is True.
         """
-        sig.Stem3D.__init__(self, hsdata.copy(), scan, verbose)
+        sig.Stem3D.__init__(self, hsdata, scan, verbose)
 
         # Checks is modification is required
         if modif_file is not None:

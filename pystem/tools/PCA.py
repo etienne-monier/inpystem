@@ -10,12 +10,14 @@ while the **EigenEstimate** function improves the estimation of PCA
 eigenvalues.
 """
 
-import warnings
 import time
+import logging
 
 import numpy as np
 
 from . import sec2str
+
+_logger = logging.getLogger(__name__)
 
 
 def EigenEstimate(l, Ns):
@@ -238,6 +240,8 @@ def Dimension_Reduction(Y, mask=None, PCA_th='auto', verbose=True):
         'auto' for automatic estimation.
         'max' to keep all components.
         An interger to choose the threshold.
+        In case there are less samples (N) than the data dimension (l),
+        thi sparameter is overridded to keep a threshold of N-1.
     verbose: optional, bool
         Prints output if True. Default is True.
 
@@ -264,24 +268,28 @@ def Dimension_Reduction(Y, mask=None, PCA_th='auto', verbose=True):
     5. 'Ym' which is a (m, n, l) numpy array where the data mean over bands
        is repeated for each spatial location.
     """
-    if Y.ndim != 3:
-        raise ValueError('Input data dimension should be 3.')
     if mask is not None and mask.shape != Y.shape[:2]:
         raise ValueError('Incoherent mask shape.')
-    if not isinstance(verbose, bool):
-        raise ValueError('verbose argument is not boolean.')
 
+    # Default mask is full sampling.
+    #
     if mask is None:
         mask = np.ones(Y.shape[:2])
 
+    # Start messaage
+    #
     if verbose:
         print("- PCA transformation -")
     start = time.time()
 
     # Store the data dimensions.
+    #
     m, n, M = Y.shape
-    N = mask.sum()
+    N = int(mask.sum())
     P = m * n
+
+    # Remove data mean
+    #
 
     # Reshape data and remove mean
     # Compute the indexes of the non-zeros elements of the flatten mask.
@@ -291,46 +299,65 @@ def Dimension_Reduction(Y, mask=None, PCA_th='auto', verbose=True):
     Yrm = np.tile(np.mean(Yr[:, nnz], axis=1), (P, 1)).T
     Yrwm = Yr - Yrm  # Remove mean
 
-    # PCA
+    # Perform PCA.
+    #
     [d, V] = np.linalg.eigh(np.cov(Yrwm[:, nnz]))
     ind = np.argsort(d)[::-1]
     d = d[ind]
     V = V[:, ind]
 
-    # In the case where N<=M
+    # Selct only the N first elements in case less samples than dim.
+    # N <= M
+    #
     if (N <= M):
+        _logger.warning('Number of samples is lower than data dimension.')
         d = d[:N - 1]
         V = V[:, :N - 1]
 
-    # Estimates the data eigen values
+    # Perform Stein isotonic regression
+    #
+    _logger.info('Performing Stein regression.')
     dout, sigma, Rest = EigenEstimate(d, N)
 
-    if PCA_th == 'auto':
-        PCA_th = Rest
-    elif PCA_th == 'max':
-        PCA_th = np.minimum(M, N)
-    else:
-        if PCA_th > np.minimum(M, N):
-            warnings.warn('DimensionReduction: The PCA threshold that was '
-                          'given is {} which is higher than minimum between '
-                          'the spectrum dimension ({}) and the number of '
-                          'samples ({}). PCA_th will be set to {}.'.format(
-                                PCA_th, M, N, np.minimum(M, N)))
-            PCA_th = np.minimum(M, N)
+    # Sets the PCA threshold level
+    #
+    if N <= M:
+        th = N - 1
 
-    # H matrix
-    H = V[:, :PCA_th]
-    S = np.dot(H.T, Yrwm).T.reshape((m, n, PCA_th))
+    elif PCA_th == 'auto':
+        th = Rest
+
+    elif PCA_th == 'max':
+        th = np.minimum(M, N)
+
+    elif PCA_th > np.minimum(M, N):
+        _logger.warning(
+            'PCA threshold too high. '
+            'Highest possible value used instead.')
+        th = np.minimum(M, N)
+
+    else:
+        th = PCA_th
+
+    th = int(th)
+    _logger.info('Threshold is {}.'.format(th))
+
+    # Prepare output.
+    #
+    H = V[:, :th]
+    S = np.dot(H.T, Yrwm).T.reshape((m, n, th))
     Yrrm = Yrm.T.reshape((m, n, M))
 
-    # Output
+    # Output message
+    #
     if (verbose):
-        print("""Dimension reduced from {} to {}.
-Estimated sigma^2 is {:.2e}.
-Done in {}.
--""".format(M, PCA_th, sigma**2, sec2str.sec2str(time.time()-start)))
+        print(
+            'Dimension reduced from {} to {}.\n'
+            'Estimated sigma^2 is {:.2e}.\n'
+            'Done in {}.\n'
+            '-'.format(M, th, sigma**2, sec2str.sec2str(time.time()-start)))
 
-    InfoOut = {'H': H, 'd': dout, 'PCA_th': PCA_th, 'sigma': sigma, 'Ym': Yrrm}
+    InfoOut = {'H': H, 'd': dout, 'PCA_th': th, 'sigma': sigma, 'Ym': Yrrm}
 
     return (S, InfoOut)
 
@@ -399,6 +426,7 @@ class PcaHandler:
         verbose: optional, bool
             If True, information is sent to output.
         """
+        _logger.info('Initializing a PcaHandler object.')
 
         # Test PCA_transform
         if type(PCA_transform) is not bool:
@@ -413,6 +441,8 @@ class PcaHandler:
 
         # Transform data into PCA
         if self.PCA_transform:
+            _logger.info('Performing PCA.')
+
             Y_PCA, InfoOut = Dimension_Reduction(
                 self.Y,
                 mask=self.mask,
@@ -425,6 +455,8 @@ class PcaHandler:
             self.InfoOut = InfoOut
 
         else:
+            _logger.info('Not performing PCA.')
+
             Y_PCA = self.Y.copy()
             self.H = np.eye(self.Y.shape[-1])
             self.Ym = np.zeros(self.Y.shape)

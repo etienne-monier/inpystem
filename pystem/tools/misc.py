@@ -47,7 +47,7 @@ def toslice(text=None, length=None):
     # The non-None limits are transformed if length is given to
     # avoid negative or 'greater than length' limits.
     for cnt in range(2):
-        if lim[cnt] is not None and length is not None:
+        if lim[cnt] is not None and lim[cnt] < 0 and length is not None:
             lim[cnt] = lim[cnt] % length
 
     # Last check before output: if limits are a:b, does b is really

@@ -12,4 +12,3 @@ from . import matlab_interface
 
 from . import sec2str
 from . import metrics
-from . import LPS_path

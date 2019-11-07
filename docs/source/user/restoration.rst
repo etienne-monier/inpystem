@@ -350,7 +350,7 @@ ITKrMM and wKSVD
 
 Weighted K-SVD (see :cite:`b-mairal2008sparse`) and Iterative Thresholding and K residual Means for Masked data (see :cite:`b-naumova2018fast`) methods.
 
-The wKSVD and ITKrMM algorithms share a lots of their code so that their input and output are the same. Though, two implementations exist to run these algorithms: one with python (:code:`ITKrMM` and :code:`wKSVD` methods) and one with maltab (:code:`ITKrMM_matlab` and :code:`wKSVD_matlab` methods). The original Matlab codes are broadcasted by "Karin Schnass"_. They were translated afterwards into python. Nothing distinguish them but for wKSVD where matlab is faster. The only problem is that you should have the :code:`matlab` command in your system path.
+The wKSVD and ITKrMM algorithms share a lots of their code so that their input and output are the same. Though, two implementations exist to run these algorithms: one with python (:code:`ITKrMM` and :code:`wKSVD` methods) and one with maltab (:code:`ITKrMM_matlab` and :code:`wKSVD_matlab` methods). The original Matlab codes are broadcasted by `Karin Schnass`_. They were translated afterwards into python. Nothing distinguish them but for wKSVD where matlab is faster. The only problem is that you should have the :code:`matlab` command in your system path.
 
 .. _Karin Schnass: https://www.uibk.ac.at/mathematik/personal/schnass/
 
