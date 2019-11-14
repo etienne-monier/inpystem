@@ -25,3 +25,9 @@ examples/
 
 # Log file
 *.log
+
+# Path file
+path*.conf
+
+# Sublime conf
+pystem.sublime-*

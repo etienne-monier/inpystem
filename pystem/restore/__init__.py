@@ -20,6 +20,7 @@ These methods include:
 # 2D / 3D methods.
 from . import interpolation
 from . import DL_ITKrMM
+from . import DL_ITKrMM_matlab
 from . import DL_BPFA
 
 # 2D methods.

@@ -105,7 +105,7 @@ class Scan:
     the samples, the :code:`ratio` argument should be given. The
     :code:`path` attribute would then have shape (ratio*m*n, ). In such
     case, :code:`path_0[:ratio*m*n]` will be equal to
-    :code:`path`. Be aware that :code:`ratio`ratio`should be lower than
+    :code:`path`. Be aware that :code:`ratio` should be lower than
     :code:`r`.
 
     Each element of these arrays is the pixel index in row major order.
@@ -303,9 +303,20 @@ class Scan:
         if seed is not None:
             np.random.seed(seed)
 
-        P = shape[0]*shape[1]  # Number of pixels.
-        perm = np.random.permutation(P)
-        return cls(shape, perm, ratio=ratio)
+        # The following code should do the job.
+        #
+        # P = shape[0]*shape[1]  # Number of pixels.
+        # perm = np.random.permutation(P)
+        #
+        # However, to match previous version output for seed 0, the
+        # following non-optimal code is chosen.
+        pix_ratio = 1 if ratio is None else ratio
+        mask = np.random.rand(*shape) < pix_ratio
+
+        perm = np.flatnonzero(mask)
+        np.random.shuffle(perm)
+
+        return cls(shape, perm)
 
     def get_mask(self):
         """Returns the sampling mask.
@@ -514,6 +525,13 @@ class AbstractStem(abc.ABC):
         if data.ndim == 3:
             tmp_axes_manager[2].size = data.shape[2]
 
+        # Modify eV axis scale and offset.
+        if data.ndim == 3:
+            if bands.start is not None:
+                offset = tmp_axes_manager[2].offset
+                scale = tmp_axes_manager[2].scale
+                tmp_axes_manager[2].offset = offset + bands.start * scale
+
         # Defining new hs data object.
         im_tmp = hs.signals.Signal2D(data) if data.ndim == 2 else\
             hs.signals.Signal1D(data)
@@ -655,8 +673,8 @@ class Stem2D(AbstractStem):
             'L1': restore.LS_2D.L1_LS,
             'ITKRMM': restore.DL_ITKrMM.ITKrMM,
             'WKSVD': restore.DL_ITKrMM.wKSVD,
-            'ITKRMM_MATLAB': restore.DL_ITKrMM.ITKrMM_matlab,
-            'WKSVD_MATLAB': restore.DL_ITKrMM.wKSVD_matlab,
+            'ITKRMM_MATLAB': restore.DL_ITKrMM_matlab.ITKrMM_matlab,
+            'WKSVD_MATLAB': restore.DL_ITKrMM_matlab.wKSVD_matlab,
             'BPFA_MATLAB': restore.DL_BPFA.BPFA_matlab
         }
 
@@ -729,8 +747,8 @@ class Stem3D(AbstractStem):
             'CLS_POST_LS': restore.LS_CLS.Post_LS_CLS,
             'ITKRMM': restore.DL_ITKrMM.ITKrMM,
             'WKSVD': restore.DL_ITKrMM.wKSVD,
-            'ITKRMM_MATLAB': restore.DL_ITKrMM.ITKrMM_matlab,
-            'WKSVD_MATLAB': restore.DL_ITKrMM.wKSVD_matlab,
+            'ITKRMM_MATLAB': restore.DL_ITKrMM_matlab.ITKrMM_matlab,
+            'WKSVD_MATLAB': restore.DL_ITKrMM_matlab.wKSVD_matlab,
             'BPFA_MATLAB': restore.DL_BPFA.BPFA_matlab
         }
 

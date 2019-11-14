@@ -252,8 +252,12 @@ def CLS(Y, Lambda, mask=None, PCA_transform=True, PCA_th='auto', init=None,
         X_PCA, InfoOut_FISTA = solver.execute()
 
         # Get extra info
-        _, nnz_ratio, Gamma = _proxg_cls(X_PCA, 0)
-        # As Lambda=0, no thresholding is performed.
+        _, nnz_ratio, Gamma = _proxg_cls(X_PCA, 1e-12)
+        # Lambda can be whatever, it does not affect X_PCA.
+        # The Lambda parameter here is the level above which a coeff
+        # is no more considered to be zero.
+        # This level should not be 0 exactly as machine non-zero can
+        # appear when performing direct, then inverse DCT.
 
         localInfo = {'E': InfoOut_FISTA['E']}
 

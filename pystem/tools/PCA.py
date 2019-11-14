@@ -322,19 +322,23 @@ def Dimension_Reduction(Y, mask=None, PCA_th='auto', verbose=True):
     # Sets the PCA threshold level
     #
     if N <= M:
-        th = N - 1
+        Auto = np.minimum(N-1, Rest)
+        Max = N - 1
+    else:
+        Auto = Rest
+        Max = np.minimum(M, N)
 
-    elif PCA_th == 'auto':
-        th = Rest
+    if PCA_th == 'auto':
+        th = Auto
 
     elif PCA_th == 'max':
-        th = np.minimum(M, N)
+        th = Max
 
-    elif PCA_th > np.minimum(M, N):
+    elif PCA_th > Max:
         _logger.warning(
             'PCA threshold too high. '
             'Highest possible value used instead.')
-        th = np.minimum(M, N)
+        th = Max
 
     else:
         th = PCA_th

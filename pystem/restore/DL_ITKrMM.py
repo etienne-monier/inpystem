@@ -3,7 +3,6 @@
 """
 
 import time
-import pathlib
 import logging
 import functools
 import multiprocessing as mp
@@ -14,199 +13,13 @@ import numpy.linalg as lin
 
 import scipy.sparse as sps
 
-import sklearn
-from sklearn.feature_extraction import image
-
-from . import LS_CLS
+from ..tools.dico_learning import forward_patch_transform,\
+    inverse_patch_transform, CLS_init
 from ..tools import PCA
-from ..tools import matlab_interface as matlab
 from ..tools import sec2str
 from ..tools import metrics
 
 _logger = logging.getLogger(__name__)
-
-
-def forward_patch_transform(ref, w):
-    """Transforms data from 2D/3D array to array whose shape is (w**2, N)
-    where w is the patch width and N is the number of patches.
-
-    Arguments
-    ---------
-    ref: (m, n) or (m, n, l) numpy array
-        The input image.
-    w: int
-        The width (or height) of the patch.
-
-    Returns
-    -------
-    data: (w**2, N) or (w**2*l, N) numpy array
-        The patches stacked version.
-        Its shape is (w**2, N) where N is the number of patches if ref is 2D or
-        (w**2*l, N) is ref is 3D.
-    """
-    if ref.ndim == 2:
-
-        data = image.extract_patches_2d(ref, (w, w))
-
-        N, p, _ = data.shape
-        return data.reshape((N, p * p)).T
-
-    elif ref.ndim == 3:
-
-        B = ref.shape[2]
-        data = image.extract_patches_2d(ref, (w, w))
-
-        N = data.shape[0]
-
-        return data.reshape((N, w * w * B)).T
-
-    else:
-        raise ValueError('Invalid number of dimension.')
-
-
-def inverse_patch_transform(data, shape):
-    """Transforms data from array of the form (w**2, N) or (w**2*l, N) where w
-    is the patch width, l is the number of bands (in the case of 3D data) and
-    N is the number of patches into 2D/3D array.
-
-    Arguments
-    ---------
-    data: (w**2, N) or (w**2*l, N) numpy array
-        The input data.
-    shape: (m, n) or (m, n, l)
-        The image shape.
-
-    Returns
-    -------
-    ref: (m, n) or (m, n, l) numpy array
-        The input image.
-    """
-    N = data.shape[1]
-
-    if len(shape) == 2:
-
-        w = int(np.sqrt(data.shape[0]))
-
-        data_r = data.T.reshape((N, w, w))
-        return image.reconstruct_from_patches_2d(data_r, shape)
-
-    elif len(shape) == 3:
-
-        B = shape[2]
-        w = int(np.sqrt(data.shape[0] / B))
-
-        data_r = data.T.reshape((N, w, w, B))
-        return image.reconstruct_from_patches_2d(data_r, shape)
-
-    else:
-        raise ValueError('Invalid length for shape.')
-
-
-def CLS_init(
-        Y, Lambda, K=128, S=None, PatchSize=5, mask=None, PCA_transform=False,
-        PCA_th='auto', init=None, verbose=True):
-    """Dictionary learning initialization based on CLS restoration algorithm.
-
-    Arguments
-    ---------
-    Y: (m, n, l)n umpy array
-        A 3D multi-band image.
-    Lambda: float
-        Regularization parameter.
-    K: optional, int
-        The dictionary size.
-        Default is 128.
-    S: optional, int
-        The code sparsity.
-        Default is 0.1*PatchSize*l.
-    PatchSize: optional, int
-        The patch size.
-        Default is 5.
-    mask: optional, None, (m, n) boolean numpy array
-        A sampling mask which is True if the pixel is sampled and False
-        otherwise. Default is None for full sampling.
-    PCA_transform: optional, bool
-        Enables the PCA transformation if True, otherwise, no PCA
-        transformation is processed.
-        Default is False as it should be done in dico learning operator.
-    PCA_th: optional, int, str
-        The desired data dimension after dimension reduction. Possible values
-        are 'auto' for automatic choice, 'max' for maximum value and an int
-        value for user value.
-        Default is 'auto'.
-    init: optional, None, (m, n, l) numpy array
-        The algorithm initialization.
-        Default is None for random initialization.
-    verbose: optional, bool
-        Indicates if information text is desired.
-        Default is True.
-
-    Returns
-    -------
-    (K, l*PatchSize**2) numpy array
-        The dictionary for dictionary learning algorithm.
-    (K, l*PatchSize**2) numpy array
-        The sparse code for dictionary learning algorithm.
-    (m, n, l) numpy array
-        CLS restored array.
-    dict
-        Dictionary containing some extra info
-
-    Note
-    ----
-    Infos in output dictionary:
-
-    * :code:`E` : In the case of partial reconstruction, the cost function
-      evolution over iterations.
-    * :code:`Gamma` : The array of kept coefficients (order is Fortran-style)
-    * :code:`nnz_ratio` : the ratio Gamma.size/(m*n)
-    * :code:`H`: the basis of the chosen signal subspace
-
-    """
-
-    if S is None:
-        S = 0.1*PatchSize*Y.shape[2]
-
-    #
-    # Inpaint using CLS  -------------------
-    if verbose:
-        print('- CLS reconstruction for init -', end=" ", flush=True)
-
-    t0 = time.time()
-
-    Xhat, InfoOut = LS_CLS.CLS(
-        Y, Lambda, mask=mask, PCA_transform=PCA_transform, PCA_th=PCA_th,
-        init=init, Nit=None, verbose=False)
-
-    dt = time.time() - t0
-
-    if verbose:
-        print('Done in {} -'.format(sec2str.sec2str(dt)))
-
-    #
-    # Decompose CLS output into patches  -------------------
-    data = forward_patch_transform(Xhat, PatchSize).T
-
-    #
-    # Dico learning -------------------
-    if verbose:
-        print(
-            '- Learning the dictionary and getting the code -',
-            end=' ', flush=True)
-
-    t0 = time.time()
-
-    dico = sklearn.decomposition.MiniBatchDictionaryLearning(
-        n_components=K, transform_n_nonzero_coefs=S, alpha=1, n_iter=500)
-    C = dico.fit_transform(data)
-    D = dico.components_
-
-    dt = time.time() - t0
-
-    if verbose:
-        print('Done in {} -'.format(sec2str.sec2str(dt)))
-
-    return (D, C, Xhat, InfoOut)
 
 
 class Dico_Learning_Executer:
@@ -397,6 +210,32 @@ class Dico_Learning_Executer:
         rd.seed(0)
         self.init = rd.randn(self.data.shape[0], self.K)
 
+    def dico_to_data(self, dico):
+        """Estimate reconstructed data based on the provided dictionary.
+
+        Arguments
+        ---------
+        dico: (PatchSize**2, K) or (PatchSize**2*l, K) numpy array
+            The estimated dictionary.
+
+        Returns
+        -------
+        (m, n) or (m, n, l) numpy array
+            The reconstructed data
+        """
+        # Recontruct data from dico and coeffs.
+        coeffs = OMPm(dico.T, self.data.T, self.S, self.mdata.T)
+        outpatches = sps.csc_matrix.dot(dico, (coeffs.T).tocsc())
+
+        # Transform from patches to data.
+        Xhat = inverse_patch_transform(outpatches, self.Y_PCA.shape)
+        Xhat = Xhat * self.mean_std[1] + self.mean_std[0]
+
+        if self.Y.ndim == 3:
+            Xhat = self.PCA_operator.inverse(Xhat)
+
+        return Xhat
+
     def execute(self, method='ITKrMM'):
         """Executes dico learning restoration.
 
@@ -507,32 +346,22 @@ class Dico_Learning_Executer:
         dicoinit = dicoinit @ np.diag(1 / lin.norm(dicoinit, axis=0))
 
         # Call reconstruction algo
-        if method == 'ITKrMM':
-            dico_hat, E, dt = itkrmm_core(
-                self.data,
-                masks=self.mdata,
-                K=self.K,
-                S=self.S,
-                lrc=lrc,
-                Nit=self.Nit,
-                init=dicoinit,
-                verbose=self.verbose,
-                xref=self.xref)
+        params = {
+            'data': self.data,
+            'masks': self.mdata,
+            'K': self.K,
+            'S': self.S,
+            'lrc': lrc,
+            'Nit': self.Nit,
+            'init': dicoinit,
+            'verbose': self.verbose,
+            'parent': self if self.xref is not None else None}
 
-            info = {'time': dt, 'E': E}
+        if method == 'ITKrMM':
+            dico_hat, info = itkrmm_core(**params)
 
         elif method == 'wKSVD':
-            dico_hat, info = wKSVD_core(
-                self.data,
-                masks=self.mdata,
-                K=self.K,
-                S=self.S,
-                lrc=lrc,
-                Nit=self.Nit,
-                init=dicoinit,
-                verbose=self.verbose,
-                xref=self.xref,
-                preserve_DC=True)
+            dico_hat, info = wKSVD_core(**params, preserve_DC=True)
 
         else:
             raise ValueError(
@@ -541,16 +370,7 @@ class Dico_Learning_Executer:
         #
         # Reconstruct data
         #
-        # Recontruct data from dico and coeffs.
-        coeffs = OMPm(dico_hat.T, self.data.T, self.S, self.mdata.T)
-        outpatches = sps.csc_matrix.dot(dico_hat, (coeffs.T).tocsc())
-
-        # Transform from patches to data.
-        Xhat = inverse_patch_transform(outpatches, self.Y_PCA.shape)
-        Xhat = Xhat * self.mean_std[1] + self.mean_std[0]
-
-        if self.Y.ndim == 3:
-            Xhat = self.PCA_operator.inverse(Xhat)
+        Xhat = self.dico_to_data(dico_hat)
 
         # Reshape output dico
         p = self.PatchSize
@@ -561,7 +381,9 @@ class Dico_Learning_Executer:
 
         # Manage output info
         dt = time.time() - start
-        InfoOut = {'dico': dico, 'E': info['E'], 'time': dt}
+        InfoOut = {'dico': dico, 'time': dt}
+        if 'SNR' in info:
+            InfoOut['SNR'] = info['SNR']
 
         if self.PCA_operator is not None:
             PCA_info = {
@@ -576,225 +398,6 @@ class Dico_Learning_Executer:
                 "Done in {}.\n---".format(sec2str.sec2str(dt)))
 
         return Xhat, InfoOut
-
-    def execute_matlab(self, method='ITKrMM'):
-        """Executes dico learning restoration.
-
-        Arguments
-        ---------
-        method: str
-            The method to use, which can be 'ITKrMM' or 'wKSVD'.
-            Default is 'ITKrMM'.
-
-        Returns
-        -------
-        (m, n) or (m, n, l) numpy array
-            Restored data.
-        dict
-            Aditional informations. See Notes.
-
-        Note
-        ----
-             The output information keys are:
-                - 'time': Execution time in seconds.
-                - 'lrc': low rank component.
-                - 'dico': Estimated dictionary.
-                - 'E': Evolution of the error.
-        """
-        # Welcome message
-        if self.verbose:
-            print("-- {}_matlab reconstruction algorithm --".format(method))
-
-        # self.init = rd.randn(self.data.shape[0], self.K + self.L)
-
-        #
-        # Execute algorithm
-        #
-        if self.CLS_init is None:
-            data = self.execute_no_CLS(method)
-        else:
-            data = self.execute_CLS(method)
-
-        outPatches = data['outdata']
-
-        #
-        # Reconstruct data
-        #
-
-        # Transform from patches to data.
-        Xhat = inverse_patch_transform(outPatches, self.Y_PCA.shape)
-
-        Xhat = Xhat * self.mean_std[1] + self.mean_std[0]
-        if self.Y.ndim == 3:
-            Xhat = self.PCA_operator.inverse(Xhat)
-
-        # Reshape output dico
-        p = self.PatchSize
-        shape_dico = (self.K, p, p) if self.Y.ndim == 2 else (
-            self.K, p, p, self.Y_PCA.shape[-1])
-
-        dico = data['dico'].T.reshape(shape_dico)
-
-        # Manage output info
-        dt = data['time']
-        InfoOut = {'time': dt, 'dico': dico, 'E': data['E']}
-
-        if self.PCA_operator is not None:
-            PCA_info = {
-                'H': self.PCA_operator.H,
-                'PCA_th': self.PCA_operator.PCA_th,
-                'Ym': np.squeeze(self.PCA_operator.Ym[0, 0, :])
-                }
-            InfoOut['PCA_info'] = PCA_info
-
-        if self.verbose:
-            print(
-                "Done in {}.\n---".format(sec2str.sec2str(dt)))
-
-        return Xhat, InfoOut
-
-    def execute_no_CLS(self, method='ITKrMM'):
-        """
-        """
-        # import ipdb; ipdb.set_trace()
-        # Let us define the true number of dico atoms to search for init.
-        if method == "wKSVD":
-            K0 = self.K - self.L  # As there's a DC component in wKSVD
-        else:
-            K0 = self.K - self.L  # For ITKrMM and others
-
-        # Arguments.
-        Dico = {'corrpatches': self.data, 'maskpatches': self.mdata,
-                'd': self.PatchSize * self.PatchSize,
-                'K': K0,
-                'L': self.L,
-                'S': self.S,
-                'X': self.data,
-                'init': self.init,
-                'maxit': self.Nit,
-                'maxitLR': self.Nit_lr,
-                'verbose': 1 if self.verbose else 0}
-
-        # Executes program
-        dirpath = pathlib.Path(__file__).parent / 'MatlabCodes' / 'ITKrMM'
-
-        if method == 'ITKrMM':
-
-            data = matlab.matlab_interface(
-                dirpath / 'ITKrMM_for_python.m',
-                Dico)
-
-            lrc = data['lrc']
-            data['dico'] = np.hstack((
-                lrc if lrc.ndim == 2 else lrc[:, np.newaxis],
-                data['dico']))
-
-            return data
-
-        elif method == 'wKSVD':
-
-            return matlab.matlab_interface(
-                dirpath / 'wKSVD_for_python.m',
-                Dico)
-
-        else:
-            raise ValueError('Unknown method {}'.method)
-
-    def execute_CLS(self, method='ITKrMM'):
-        """
-        """
-        # Let us define the true number of dico atoms to search for init.
-        if method == "wKSVD":
-            K0 = self.K - self.L - 1  # As there's a DC component in wKSVD
-        else:
-            K0 = self.K - self.L  # For ITKrMM and others
-
-        start = time.time()
-
-        # Get initialization dictionary
-        D, C, Xhat, InfoOut = CLS_init(
-            self.Y_PCA,
-            mask=self.mask,
-            PatchSize=self.PatchSize,
-            K=K0,
-            S=self.S,
-            PCA_transform=False,
-            verbose=self.verbose,
-            **self.CLS_init)
-
-        # Get low rank component
-        CLS_data = forward_patch_transform(Xhat, self.PatchSize)
-
-        Uec, _, _ = np.linalg.svd(CLS_data)
-
-        lrcomp = Uec[:, :self.L]
-        dicoinit = D.T
-
-        # Arguments.
-        Dico = {'corrpatches': self.data, 'maskpatches': self.mdata,
-                'd': self.PatchSize * self.PatchSize,
-                'K': K0,
-                'L': self.L,
-                'S': self.S,
-                'X': self.data,
-                'lrcomp': lrcomp,
-                'dicoinit': dicoinit,
-                'maxit': self.Nit,
-                'maxitLR': self.Nit_lr,
-                'verbose': 1 if self.verbose else 0}
-
-        # Executes program
-        dirpath = pathlib.Path(__file__).parent / 'MatlabCodes' / 'ITKrMM'
-
-        if method == 'ITKrMM':
-
-            data = matlab.matlab_interface(
-                dirpath / 'ITKrMM_CLS_init_for_python.m',
-                Dico)
-
-            lrc = data['lrc']
-            data['dico'] = np.hstack((
-                lrc if lrc.ndim == 2 else lrc[:, np.newaxis],
-                data['dico']))
-
-        elif method == 'wKSVD':
-            data = matlab.matlab_interface(
-                dirpath / 'wKSVD_init_CLS_for_python.m',
-                Dico)
-
-        else:
-            raise ValueError('Unknown method {}'.method)
-
-        data['time'] = time.time() - start
-
-        return data
-
-
-def dico_distance(original, new):
-    catch_cnt = 0
-    total = 0  # Total distance
-
-    d, K = original.shape
-
-    # Make every first atom component be positive.
-    new_p = new @ np.diag(np.sign(new[0, :]))
-
-    # I scan all original atom to check it's present in the new dico.
-    for atom in original.T:
-
-        atom_p = np.sign(atom)*atom
-
-        distances = np.sum(
-            (new_p - np.tile(atom_p[:, np.newaxis], [1, K]))**2, axis=0)
-
-        pos = np.argmin(distances)
-
-        error = 1-np.abs(np.sum(new_p[:, pos]*atom_p))
-        total += error
-        catch_cnt += error < 1e-2
-
-    ratio = 100*catch_cnt/K
-    return ratio, total
 
 
 def ITKrMM(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
@@ -945,156 +548,6 @@ def wKSVD(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
         Y, mask, PatchSize, K, L, S, Nit_lr,
         Nit, CLS_init, xref, verbose, PCA_transform, PCA_th)
     return obj.execute(method='wKSVD')
-
-
-def ITKrMM_matlab(Y, mask, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-                  Nit=40, CLS_init=None, xref=None, verbose=True,
-                  PCA_transform=True, PCA_th='auto'):
-    """ITKrMM restoration algorithm with matlab code.
-
-    Arguments
-    ---------
-    Y: (m, n) or (m, n, l) numpy array
-        The input data.
-    mask: optional, None or (m, n) numpy array
-        The acquisition mask.
-        Default is None for full sampling.
-    PatchSize: optional, int
-        The width (or height) of the patch.
-        Default is 5.
-    K: optional, int
-        The dictionary dimension.
-        Default is 128.
-    L: optional, int
-        The number of low rank components to learn.
-        Default is 1.
-    S: optional, int
-        The code sparsity level. Default is 20.
-    Nit_lr: optional, int
-        The number of iterations for the low rank estimation.
-        Default is 10.
-    Nit: optional, int
-        The number of iterations. Default is 40.
-    CLS_init: optional, dico
-        CLS initialization inofrmation. See Notes for details.
-        Default is None.
-    xref: optional, (m, n) or (m, n, l) numpy array
-        Reference image to compute error evolution.
-        Default is None for input Y data.
-    verbose: optional, bool
-        The verbose parameter. Default is True.
-    PCA_transform: optional, bool
-        Enables the PCA transformation if True, otherwise, no PCA
-        transformation is processed.
-        Default is True.
-    PCA_th: optional, int, str
-        The desired data dimension after dimension reduction.
-        Possible values are 'auto' for automatic choice, 'max' for maximum
-        value and an int value for user value.
-        Default is 'auto'.
-
-    Returns
-    -------
-    (m, n) or (m, n, l) numpy array
-        Restored data.
-    dict
-        Aditional informations. See Notes.
-
-    Notes
-    -----
-
-        The algorithm can be initialized with CLS as soon as
-        :code:`CLS_init` is not None.  In this case, :code:`CLS_init`
-        should be a dictionary containing the required :code:`Lambda`
-        key and eventually the :code:`init` optional argument.
-
-        The output information keys are:
-
-        * :code:`time`: Execution time in seconds.
-        * :code:`lrc`: low rank component.
-        * :code:`dico`: Estimated dictionary.
-        * :code:`E`: Evolution of the error.
-    """
-
-    obj = Dico_Learning_Executer(
-        Y, mask, PatchSize, K, L, S, Nit_lr,
-        Nit, CLS_init, xref, verbose, PCA_transform, PCA_th)
-    return obj.execute_matlab(method='ITKrMM')
-
-
-def wKSVD_matlab(Y, mask, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-                 Nit=40, CLS_init=None, xref=None, verbose=True,
-                 PCA_transform=True, PCA_th='auto'):
-    """wKSVD restoration algorithm with Matlab code.
-
-    Arguments
-    ---------
-    Y: (m, n) or (m, n, l) numpy array
-        The input data.
-    mask: optional, None or (m, n) numpy array
-        The acquisition mask.
-        Default is None for full sampling.
-    PatchSize: optional, int
-        The width (or height) of the patch.
-        Default is 5.
-    K: optional, int
-        The dictionary dimension.
-        Default is 128.
-    L: optional, int
-        The number of low rank components to learn.
-        Default is 1.
-    S: optional, int
-        The code sparsity level. Default is 20.
-    Nit_lr: optional, int
-        The number of iterations for the low rank estimation.
-        Default is 10.
-    Nit: optional, int
-        The number of iterations. Default is 40.
-    CLS_init: optional, dico
-        CLS initialization inofrmation. See Notes for details.
-        Default is None.
-    xref: optional, (m, n) or (m, n, l) numpy array
-        Reference image to compute error evolution.
-        Default is None for input Y data.
-    verbose: optional, bool
-        The verbose parameter. Default is True.
-    PCA_transform: optional, bool
-        Enables the PCA transformation if True, otherwise, no PCA
-        transformation is processed.
-        Default is True.
-    PCA_th: optional, int, str
-        The desired data dimension after dimension reduction.
-        Possible values are 'auto' for automatic choice, 'max' for maximum
-        value and an int value for user value.
-        Default is 'auto'.
-
-    Returns
-    -------
-    (m, n) or (m, n, l) numpy array
-        Restored data.
-    dict
-        Aditional informations. See Notes.
-
-    Notes
-    -----
-
-        The algorithm can be initialized with CLS as soon as
-        :code:`CLS_init` is not None.  In this case, :code:`CLS_init`
-        should be a dictionary containing the required :code:`Lambda`
-        key and eventually the :code:`init` optional argument.
-
-        The output information keys are:
-
-        * :code:`time`: Execution time in seconds.
-        * :code:`lrc`: low rank component.
-        * :code:`dico`: Estimated dictionary.
-        * :code:`E`: Evolution of the error.
-    """
-
-    obj = Dico_Learning_Executer(
-        Y, mask, PatchSize, K, L, S, Nit_lr,
-        Nit, CLS_init, xref, verbose, PCA_transform, PCA_th)
-    return obj.execute_matlab(method='wKSVD')
 
 
 def rec_lratom(data, masks=None, lrc=None, Nit=10, inatom=None, verbose=True):
@@ -1332,7 +785,7 @@ def _itkrmm_multi(n, lrc, data, masks, L):
 
 def itkrmm_core(
         data, masks=None, K=None, S=1, lrc=None, Nit=50, init=None,
-        verbose=True, xref=None):
+        verbose=True, parent=None):
     """Iterative Thresholding and K residual Means masked.
 
     Arguments
@@ -1361,20 +814,29 @@ def itkrmm_core(
     verbose: optional, optional, bool
         The verbose parameter.
         Default is True.
-    xref: optional, None or (d, N) numpy array
-        True data or reference data to check convergence.
-        Default is data.
+    parent: optional, None or Dico_Learning_Executer object
+        The Dico_Learning_Executer object that called this function.
+        If this is not None, the SNR between initial true data (given
+        throught the `xref`argument of Dico_Learning_Executer) and the
+        currently reconstructed data will be computed for each
+        iteration. As this means one more OMPm per iteration, this is
+        quite longer.
+        Default is None for faster code and non-SNR output.
 
     Returns
     -------
     (d, K) numpy array
         Estimated dictionary
-    float
-        Execution time in seconds.
+    dictionary
+        Output information. See Note.
 
+    Note
+    ----
+    The output dictionary contains the following keys.
 
-    (Nit, ) numpy array
-        Evolution of NMSE between current data and xref.
+    * `time` (float): Execution time in seconds.
+    * 'SNR' (None, (Nit, ) array): Evolution of the SNR across the
+      iterations in case `parent`is not None.
     """
 
     # d is patch size, N is # of patches.
@@ -1443,8 +905,10 @@ def itkrmm_core(
     # Learn dictionary --------------
     #
     dico_k = init
-    E = np.zeros(Nit)
     time_step = 0
+
+    if parent is not None:
+        SNR = np.zeros(Nit)
 
     for it in range(Nit):
 
@@ -1456,9 +920,11 @@ def itkrmm_core(
                 print(
                     'Iteration #{} over {}'.format(it, Nit),
                     ' (estimated remaining time: ',
-                    '{}). E: {:.2f}.'.format(
+                    '{}).'.format(
                         sec2str.sec2str(
-                            time_step*(Nit-it+1))), E[it-1])
+                            time_step*(Nit-it+1))) +
+                    'SNR: {:.2f}.'.format(SNR[it-1])
+                    if parent is not None else '')
 
         start = time.time()
 
@@ -1538,25 +1004,22 @@ def itkrmm_core(
         dico_k = dico_kp1
 
         # Compute error
-        if xref is not None:
+        if parent is not None:
 
-            # Estimate coeffs with OMPm
-            lrcdico = np.concatenate((lrc, dico_k), axis=1)
-            coeffs = OMPm(lrcdico.T, data.T, S, masks.T)
-
-            # Reconstruct data
-            data_hat_patches = sps.csc_matrix.dot(lrcdico, (coeffs.T).tocsc())
-
-            # Put it back into image shape
-            m, n, B = xref.shape
-            Xhat = inverse_patch_transform(data_hat_patches, xref.shape)
+            xhat = parent.dico_to_data(dico_k)
 
             # Compute error
-            E[it] = metrics.SNR(xhat=Xhat, xref=xref)
+            SNR[it] = metrics.SNR(xhat=xhat, xref=parent.xref)
 
         time_step = time.time() - start
 
-    return np.concatenate((lrc, dico_k), axis=1), E, time.time() - start_0
+    dico_hat = np.concatenate((lrc, dico_k), axis=1)
+    out_info = {'time': time.time() - start_0}
+
+    if parent is not None:
+        out_info['SNR'] = SNR
+
+    return dico_hat, out_info
 
 
 def improve_atom(data, masks, dico, coeffs, j):
@@ -1735,7 +1198,64 @@ def dico_cleanup(data, dico, coeffs):
 
 def wKSVD_core(
         data, masks=None, K=None, S=1, lrc=None, Nit=50, init=None,
-        verbose=True, xref=None, preserve_DC=True):
+        verbose=True, parent=None, preserve_DC=True):
+    """Weighted kSVD core.
+
+    Arguments
+    ---------
+    data: (d, N) numpy array
+        The (corrupted) training signals as its columns.
+    masks: optional, None, (d, N) numpy array
+        The masks as its columns.
+        masks(.,.) in {0,1}.
+        Default is None for full sampling.
+    K: optional, None or int
+        Dictionary size.
+        Default is None for d.
+    S: optional, int
+        Desired or estimated sparsity level of the signals.
+        Default is 1.
+    lrc: optional, None or (d, L) numpy array
+        Orthobasis for low rank component. Default is None.
+    Nit: optional, int
+        Number of iterations.
+        Default is 50.
+    init: optional, None or (d, K-L) numpy array
+        Initialisation, unit norm column matrix.
+        Here, L is the number of low rank components.
+        Default is None for random.
+    verbose: optional, optional, bool
+        The verbose parameter.
+        Default is True.
+    parent: optional, None or Dico_Learning_Executer object
+        The Dico_Learning_Executer object that called this function.
+        If this is not None, the SNR between initial true data (given
+        throught the `xref`argument of Dico_Learning_Executer) and the
+        currently reconstructed data will be computed for each
+        iteration. As this means one more OMPm per iteration, this is
+        quite longer.
+        Default is None for faster code and non-SNR output.
+    preserve_DC: bool
+        Specifies if a mean patch should be conserved into the
+        dictionary.
+
+    Returns
+    -------
+    (d, K) numpy array
+        Estimated dictionary
+    dictionary
+        Output information. See Note.
+
+    Note
+    ----
+    The output dictionary contains the following keys.
+
+    * `time` (float): Execution time in seconds.
+    * 'redrawn_cnt' (int): A counter that indicates how many times an
+      atom has been re-drawn.
+    * 'SNR' (None, (Nit, ) array): Evolution of the SNR across the
+      iterations in case `parent`is not None.
+    """
 
     # Data and masks
     #
@@ -1805,8 +1325,8 @@ def wKSVD_core(
         np.linalg.norm(dico, axis=0) * np.sign(dico[0, :]),
         [d, 1])
 
-    if xref is None:
-        xref = data
+    if parent is not None:
+        SNR = np.zeros(Nit)
 
     #
     # The K-SVD algorithm starts here.
@@ -1866,7 +1386,20 @@ def wKSVD_core(
         #   - which is not enough used to represent the data.
         dico = dico_cleanup(data, dico, coeffs[1:, :])
 
+        if parent is not None:
+
+            xhat = parent.dico_to_data(
+                np.hstack((DC_atom[:, np.newaxis], dico)))
+
+            # Compute error
+            SNR[it] = metrics.SNR(xhat=xhat, xref=parent.xref)
+
     dico_hat = np.hstack(
         (DC_atom[:, np.newaxis], dico)) if preserve_DC else dico
 
-    return dico_hat, {'time': dt, 'redrawn_cnt': redrawn_cnt, 'E': 0}
+    out_info = {'time': dt, 'redrawn_cnt': redrawn_cnt}
+
+    if parent is not None:
+        out_info['SNR'] = SNR
+
+    return dico_hat, out_info
