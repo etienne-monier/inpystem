@@ -3,8 +3,6 @@
 import setuptools
 import pathlib
 
-import pystem.version as version
-
 
 def get_data_files():
 
@@ -33,6 +31,12 @@ def get_long_description():
     return long_description
 
 
+# Load versioning data
+version = {}
+with open("pystem/version.py") as fp:
+    exec(fp.read(), version)
+
+
 # Packages that are required for pystem
 install_req = ['numpy',
                'scipy',
@@ -47,7 +51,7 @@ setuptools.setup(
     # Name and version
     #
     name='pystem',
-    version=version.version,
+    version=version['version'],
     package_dir={'pystem': 'pystem'},
 
     # Required installations
@@ -65,20 +69,20 @@ setuptools.setup(
 
     # Metadata to display on PyPI
     #
-    author=version.author['name'],
-    author_email=version.author['mail'],
+    author=version['author']['name'],
+    author_email=version['author']['mail'],
     # Descriptions
-    description=version.description,
+    description=version['description'],
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     # Locations
-    url=version.url,
-    project_urls=version.url,
-    license=version.license,
-    keywords=version.keywords,
-    platforms=version.platforms,
+    url=version['url'],
+    project_urls=version['url'],
+    license=version['license'],
+    keywords=version['keywords'],
+    platforms=version['platforms'],
 
     # Classifiers
     #
-    classifiers=version.classifiers,
+    classifiers=version['classifiers'],
 )
