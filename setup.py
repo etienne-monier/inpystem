@@ -51,7 +51,7 @@ setuptools.setup(
     package_dir={'pystem': 'pystem'},
 
     # Required installations
-    install_requires=install_req,
+    install_require=install_req,
     packages=['pystem',
               'pystem.restore',
               'pystem.tools',

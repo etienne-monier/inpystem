@@ -88,8 +88,8 @@ class Dico_Learning_Executer:
     """
 
     def __init__(self, Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-                 Nit=40, CLS_init=None, xref=None, verbose=True,
-                 PCA_transform=True, PCA_th='auto'):
+                 Nit=40, CLS_init=None, xref=None, invert_function=None,
+                 verbose=True, PCA_transform=True, PCA_th='auto'):
         """
         Arguments
         ---------
@@ -209,6 +209,10 @@ class Dico_Learning_Executer:
 
         rd.seed(0)
         self.init = rd.randn(self.data.shape[0], self.K)
+
+        self.invert_function = self.dico_to_data if invert_function is None\
+            else functools.partial(
+                invert_function, pystem_inverse_fct=self.dico_to_data)
 
     def dico_to_data(self, dico):
         """Estimate reconstructed data based on the provided dictionary.
@@ -401,8 +405,8 @@ class Dico_Learning_Executer:
 
 
 def ITKrMM(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-           Nit=40, CLS_init=None, xref=None, verbose=True,
-           PCA_transform=True, PCA_th='auto'):
+           Nit=40, CLS_init=None, xref=None, invert_function=None,
+           verbose=True, PCA_transform=True, PCA_th='auto'):
     """ITKrMM restoration algorithm.
 
     Arguments
@@ -471,13 +475,13 @@ def ITKrMM(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
 
     obj = Dico_Learning_Executer(
         Y, mask, PatchSize, K, L, S, Nit_lr,
-        Nit, CLS_init, xref, verbose, PCA_transform, PCA_th)
+        Nit, CLS_init, xref, invert_function, verbose, PCA_transform, PCA_th)
     return obj.execute(method='ITKrMM')
 
 
 def wKSVD(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-          Nit=40, CLS_init=None, xref=None, verbose=True,
-          PCA_transform=True, PCA_th='auto'):
+          Nit=40, CLS_init=None, xref=None, invert_function=None,
+          verbose=True, PCA_transform=True, PCA_th='auto'):
     """wKSVD restoration algorithm.
 
     Arguments
@@ -546,7 +550,7 @@ def wKSVD(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
 
     obj = Dico_Learning_Executer(
         Y, mask, PatchSize, K, L, S, Nit_lr,
-        Nit, CLS_init, xref, verbose, PCA_transform, PCA_th)
+        Nit, CLS_init, xref, invert_function, verbose, PCA_transform, PCA_th)
     return obj.execute(method='wKSVD')
 
 
@@ -1006,7 +1010,8 @@ def itkrmm_core(
         # Compute error
         if parent is not None:
 
-            xhat = parent.dico_to_data(dico_k)
+            dico_hat = np.concatenate((lrc, dico_k), axis=1)
+            xhat = parent.invert_function(dico_hat)
 
             # Compute error
             SNR[it] = metrics.SNR(xhat=xhat, xref=parent.xref)
@@ -1331,13 +1336,25 @@ def wKSVD_core(
     #
     # The K-SVD algorithm starts here.
     #
+    start = time.time()
+    time_step = 0
 
     for it in range(Nit):
 
-        start = time.time()
+        start_bis = time.time()
 
         if verbose:
-            print('Iteration #{} over {}.'.format(it, Nit))
+            if it == 0:
+                print('Iteration #{} over {}.'.format(it, Nit))
+            else:
+                print(
+                    'Iteration #{} over {}'.format(it, Nit),
+                    ' (estimated remaining time: ',
+                    '{}).'.format(
+                        sec2str.sec2str(
+                            time_step*(Nit-it+1))) +
+                    'SNR: {:.2f}.'.format(SNR[it-1])
+                    if parent is not None else '')
 
         # Sparse approximation using OMPm with fixed sparsity level S.
         #
@@ -1379,7 +1396,7 @@ def wKSVD_core(
             # Increment the counter for redrawn atoms.
             redrawn_cnt = redrawn_cnt + redrawn
 
-        dt = time.time() - start
+        
 
         # This is to remove atoms :
         #   - which have a twin which is too close
@@ -1388,11 +1405,17 @@ def wKSVD_core(
 
         if parent is not None:
 
-            xhat = parent.dico_to_data(
-                np.hstack((DC_atom[:, np.newaxis], dico)))
+            dico_hat = np.hstack(
+                (DC_atom[:, np.newaxis], dico)) if preserve_DC else dico
+
+            xhat = parent.invert_function(dico_hat)
 
             # Compute error
             SNR[it] = metrics.SNR(xhat=xhat, xref=parent.xref)
+
+        time_step = time.time() - start_bis
+
+    dt = time.time() - start
 
     dico_hat = np.hstack(
         (DC_atom[:, np.newaxis], dico)) if preserve_DC else dico

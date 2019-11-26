@@ -252,7 +252,7 @@ def CLS(Y, Lambda, mask=None, PCA_transform=True, PCA_th='auto', init=None,
         X_PCA, InfoOut_FISTA = solver.execute()
 
         # Get extra info
-        _, nnz_ratio, Gamma = _proxg_cls(X_PCA, 1e-12)
+        _, nnz_ratio, Gamma = _proxg_cls(X_PCA, 1e-10)
         # Lambda can be whatever, it does not affect X_PCA.
         # The Lambda parameter here is the level above which a coeff
         # is no more considered to be zero.

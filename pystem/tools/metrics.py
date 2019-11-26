@@ -4,6 +4,7 @@
 """
 
 import numpy as np
+from skimage.metrics import structural_similarity as ssim
 
 
 def SNR(xhat, xref):
@@ -37,7 +38,7 @@ def NMSE(xhat, xref):
     Returns
     -------
     float
-        The NMSE value in dB.
+        The NMSE value.
     """
     return np.linalg.norm(xref - xhat)**2 / np.linalg.norm(xref)**2
 
@@ -63,7 +64,7 @@ def aSAD(xhat, xref):
     Returns
     -------
     float
-        The SNR value in dB.
+        The (mean) aSAD value.
     """
     if xref.ndim == 1:
         return float(
@@ -81,3 +82,30 @@ def aSAD(xhat, xref):
         return aSAD(
             xhat=xhat.reshape((-1, xhat.shape[2])),
             xref=xref.reshape((-1, xhat.shape[2])))
+
+
+def SSIM(xhat, xref):
+    """Computes the structural similarity index.
+
+    Arguments
+    ---------
+    xhat: numpy array
+        The noised data.
+    xref: numpy array
+        The noise-free image.
+
+    Returns
+    -------
+    float
+        The (mean) SSIM value.
+    """
+    if xref.ndim == 3:
+        multichannel = True
+
+    elif xref.ndim == 2:
+        multichannel = False
+
+    else:
+        raise ValueError('Invalid data number of dimension.')
+
+    return ssim(xref, xhat, multichannel=multichannel)
