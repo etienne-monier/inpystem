@@ -6,6 +6,7 @@ import abc
 import pathlib
 import configparser
 import logging
+import copy
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -402,7 +403,7 @@ class AbstractStem(abc.ABC):
         if scan.shape != hsdata.data.shape[:2]:
             raise ValueError('hsdata and scan have incoherent spatial shape.')
 
-        self.scan = scan
+        self.scan = copy.deepcopy(scan)
         self.verbose = verbose
 
     def correct(
