@@ -205,7 +205,6 @@ class Matlab_Dico_Learning_Executer:
         self.mdata = forward_patch_transform(obs_mask, self.PatchSize)
         self.data *= self.mdata
 
-        rd.seed(0)
         self.init = rd.randn(self.data.shape[0], self.K)
 
     def execute(self, method='ITKrMM'):

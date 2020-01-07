@@ -207,7 +207,6 @@ class Dico_Learning_Executer:
         self.mdata = forward_patch_transform(obs_mask, self.PatchSize)
         self.data *= self.mdata
 
-        rd.seed(0)
         self.init = rd.randn(self.data.shape[0], self.K)
 
         self.invert_function = self.dico_to_data if invert_function is None\
@@ -270,10 +269,6 @@ class Dico_Learning_Executer:
             print("-- {} reconstruction algorithm --".format(method))
 
         start = time.time()
-
-        # Default initialization is random.
-        # rd.seed(0)
-        # self.init = rd.randn(self.data.shape[0], self.K)
 
         # Let us define the true number of dico atoms to search for init.
         if method == "wKSVD":
