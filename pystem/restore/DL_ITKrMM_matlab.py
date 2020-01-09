@@ -86,7 +86,7 @@ class Matlab_Dico_Learning_Executer:
     """
 
     def __init__(self, Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-                 Nit=40, CLS_init=None, xref=None, verbose=True,
+                 Nit=40, init=None, CLS_init=None, xref=None, verbose=True,
                  PCA_transform=True, PCA_th='auto'):
         """
         Arguments
@@ -113,6 +113,8 @@ class Matlab_Dico_Learning_Executer:
             Default is 10.
         Nit: int
             The number of iterations. Default is 40.
+        init: (PatchSize**2, K+L) or (PatchSize**2*l, K+L) numpy array
+            Initialization dictionary.
         CLS_init: dico
             CLS initialization inofrmation. See Note for details.
             Default is None.
@@ -205,7 +207,10 @@ class Matlab_Dico_Learning_Executer:
         self.mdata = forward_patch_transform(obs_mask, self.PatchSize)
         self.data *= self.mdata
 
-        self.init = rd.randn(self.data.shape[0], self.K)
+        if init is None:
+            self.init = rd.randn(self.data.shape[0], self.K)
+        else:
+            self.init = init
 
     def execute(self, method='ITKrMM'):
         """Executes dico learning restoration.
@@ -401,7 +406,7 @@ class Matlab_Dico_Learning_Executer:
 
 
 def ITKrMM_matlab(Y, mask, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-                  Nit=40, CLS_init=None, xref=None, verbose=True,
+                  Nit=40, init=None, CLS_init=None, xref=None, verbose=True,
                   PCA_transform=True, PCA_th='auto'):
     """ITKrMM restoration algorithm with matlab code.
 
@@ -428,6 +433,8 @@ def ITKrMM_matlab(Y, mask, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
         Default is 10.
     Nit: optional, int
         The number of iterations. Default is 40.
+    init: (PatchSize**2, K+L) or (PatchSize**2*l, K+L) numpy array
+        Initialization dictionary.
     CLS_init: optional, dico
         CLS initialization inofrmation. See Notes for details.
         Default is None.
@@ -471,12 +478,12 @@ def ITKrMM_matlab(Y, mask, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
 
     obj = Matlab_Dico_Learning_Executer(
         Y, mask, PatchSize, K, L, S, Nit_lr,
-        Nit, CLS_init, xref, verbose, PCA_transform, PCA_th)
+        Nit, init, CLS_init, xref, verbose, PCA_transform, PCA_th)
     return obj.execute(method='ITKrMM')
 
 
 def wKSVD_matlab(Y, mask, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-                 Nit=40, CLS_init=None, xref=None, verbose=True,
+                 Nit=40, init=None, CLS_init=None, xref=None, verbose=True,
                  PCA_transform=True, PCA_th='auto'):
     """wKSVD restoration algorithm with Matlab code.
 
@@ -503,6 +510,8 @@ def wKSVD_matlab(Y, mask, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
         Default is 10.
     Nit: optional, int
         The number of iterations. Default is 40.
+    init: (PatchSize**2, K+L) or (PatchSize**2*l, K+L) numpy array
+        Initialization dictionary.
     CLS_init: optional, dico
         CLS initialization inofrmation. See Notes for details.
         Default is None.
@@ -546,5 +555,5 @@ def wKSVD_matlab(Y, mask, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
 
     obj = Matlab_Dico_Learning_Executer(
         Y, mask, PatchSize, K, L, S, Nit_lr,
-        Nit, CLS_init, xref, verbose, PCA_transform, PCA_th)
+        Nit, init, CLS_init, xref, verbose, PCA_transform, PCA_th)
     return obj.execute(method='wKSVD')
