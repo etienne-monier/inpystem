@@ -227,7 +227,7 @@ def load_file(
                         value = config['AXES'][info_key]
                         if re.match('[0-9]', value[0]) is not None:
                             value = eval(value)
-                        data.axes_manager[dim][info] = value
+                        setattr(data.axes_manager[dim], info, value)
 
     else:
         data = hs.load(str(data_file))
@@ -451,6 +451,12 @@ def load_example(
 
     else:
         raise ValueError('Example data {} does not exist.'.format(key))
+
+    if not data_path.exists():
+        raise ValueError(
+            'Example data {} is not installed. Please go to the'
+            ' project Github page to download it and read the documentation'
+            ' to install it.'.format(key))
 
     _logger.info('Loading example data: {}.'.format(key))
 

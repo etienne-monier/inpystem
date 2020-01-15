@@ -16,7 +16,7 @@ def get_data_files():
 
         for file in p.rglob('*'):
             if file.suffix != '.mat' and not file.is_dir():
-                data_files += [str(file)[7:]]
+                data_files += [str(file)[9:]]
 
     data_files += ['restore/MatlabCodes/ITKrMM/InOut',
                    'restore/MatlabCodes/BPFA/InOut']
@@ -60,12 +60,12 @@ setuptools.setup(
               'inpystem.restore',
               'inpystem.tools',
               'inpystem.tests',
-              # 'inpystem.tests.restore',
               'inpystem.tests.tools'],
     package_data={
         'inpystem': get_data_files()
         },
     include_package_data=True,
+    python_requires='>=3.6',
 
     # Metadata to display on PyPI
     #
@@ -76,7 +76,7 @@ setuptools.setup(
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     # Locations
-    url=version['url'],
+    url=version['url']["Source Code"],
     project_urls=version['url'],
     license=version['license'],
     keywords=version['keywords'],

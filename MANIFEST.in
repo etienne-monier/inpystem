@@ -1,4 +1,18 @@
+# List all files to be included in source distribution.
+# They will appear in the source archives and Python wheels.
+#
+# The data files given in setup.py are only included when using 
+# python setup.py install.
+
 # Include LICENSE and README
 include README*
 include LICENSE
 include MANIFEST.in
+
+# Matlab files
+recursive-include inpystem/restore/MatlabCodes/ *
+
+# Sample data
+recursive-include inpystem/data/ *
+
+

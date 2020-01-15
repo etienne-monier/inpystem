@@ -1,11 +1,10 @@
 # Compiled python modules.
 *.pyc
 __pycache__/
-.cython/*
 
 # Setuptools distribution folder.
 /dist/
-/buid/
+/build/
 
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
@@ -30,4 +29,4 @@ examples/
 path*.conf
 
 # Sublime conf
-pystem.sublime-*
+inpystem.sublime-*
