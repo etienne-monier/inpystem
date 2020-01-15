@@ -12,7 +12,7 @@ This library was originally developed by its creator Etienne Monier to handle EE
 
 ## Documentation
 
-This project documentation is hosted by [ReadTheDocs](https://readthedocs.org/). To access to it, please follow [this link](https://inpystem.readthedocs.io/en/latest/index.html).
+This project documentation is hosted by [ReadTheDocs](https://readthedocs.org/). To access to it, please follow [this link](https://inpystem.readthedocs.io/en/latest/). 
 
 ## Licence
 

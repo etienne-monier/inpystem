@@ -9,7 +9,7 @@ def get_data_files():
     # Final list of files to return.
     data_files = []
     # List of directories to look into
-    data_dirs = ['data/', 'restore/MatlabCodes/']
+    data_dirs = ['restore/MatlabCodes/']
 
     for directory in data_dirs:
         p = pathlib.Path('inpystem/' + directory)

@@ -60,7 +60,7 @@ The sampling scan can last be initialized with the :meth:`~.signals.Scan.random`
 
 
 Construct inpystem data manually
-------------------------------
+--------------------------------
 
 As explained in :ref:`sec-result-data`, the inpystem data is composed of a :class:`~.signals.Scan` object which defines the sampling pattern and the HyperSpy data which stores the data. Once both have been defined, the inpystem structure can be defined by hand.
 
@@ -70,7 +70,7 @@ As explained in :ref:`sec-result-data`, the inpystem data is composed of a :clas
 
 
 Construct inpystem data from a Numpy array
-----------------------------------------
+------------------------------------------
 
 In case your image is a numpy array, one should define the HyperSpy data before creating the inpystem data.
 
@@ -89,7 +89,7 @@ Well, the problem here, which is the same as for numpy-based HyperSpy data, is t
 
 
 Construct inpystem data from a configuration file
------------------------------------------------
+-------------------------------------------------
 
 As explained in :ref:`sec-loading-data`, inpystem can load data from a :code:`.conf` configuration file. This is loaded by using the :func:`~.dataset.load_file` function (or the :func:`~.dataset.load_key` function if the configuration file is in the data path). To that end, a configuration file gives to inpystem all important informations.
 
@@ -172,11 +172,16 @@ And the data would be loaded by simply typing this.
 
     >>> inpystem.load_file('my-nice-file.conf', scan_ratio=0.5, scan_seed=0)
 
+.. _example_data:
 
-Loading example data for fast testing
--------------------------------------
+Some example data for fast testing
+----------------------------------
 
-Last way to load data, use one of the example data provided by inpystem. To that end, just use the :func:`~.dataset.load_example` function just as the :func:`~.dataset.load_key` with one of the following keys:
+The package is delivered with some toy data for testng which are not provided inside the package itself due to the high data size. Please download it at the `github project page`_ under location :code:`DATA/` and copy it to your data path (see :ref:`sec-loading-data`). These data can be called afterwards with the :func:`~.dataset.load_key` function.
+
+.. _github project page: https://github.com/etienne-monier/inpystem
+
+The three example data are called with the following keys:
 
 * :code:`'HR-sample'`: this is a real atomic-scale HAADF/EELS sample,
 * :code:`'HR-synth'`: this is a synthetic EELS image generated to be similar to :code:`'HR-sample'`,

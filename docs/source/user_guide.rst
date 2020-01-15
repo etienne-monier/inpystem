@@ -1,5 +1,5 @@
 inpystem User Guide
-=================
+===================
 
 .. toctree::
    :maxdepth: 1

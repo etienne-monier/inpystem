@@ -1,5 +1,5 @@
 inpystem.restore subpackage
-=========================
+===========================
 
 .. automodule:: inpystem.restore
 
@@ -12,4 +12,5 @@ inpystem.restore subpackage
    restore/LS_3D
    restore/LS_CLS
    restore/DL_ITKrMM
+   restore/DL_ITKrMM_matlab
    restore/DL_BPFA

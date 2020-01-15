@@ -11,8 +11,3 @@ include MANIFEST.in
 
 # Matlab files
 recursive-include inpystem/restore/MatlabCodes/ *
-
-# Sample data
-recursive-include inpystem/data/ *
-
-

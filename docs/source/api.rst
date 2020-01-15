@@ -1,5 +1,5 @@
 Full inpystem API documentation
-=============================
+===============================
 
 .. automodule:: inpystem
 

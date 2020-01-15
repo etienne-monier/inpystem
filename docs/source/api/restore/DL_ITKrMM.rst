@@ -8,12 +8,10 @@ The ITKrMM algorithm
 
 .. autofunction:: inpystem.restore.DL_ITKrMM.ITKrMM
 
-.. autofunction:: inpystem.restore.DL_ITKrMM.ITKrMM_matlab
-
 The wKSVD algorithm
 -------------------
 
-.. autofunction:: inpystem.restore.DL_ITKrMM.wKSVD_matlab
+.. autofunction:: inpystem.restore.DL_ITKrMM.wKSVD
 
 Patch manipulation functions
 ----------------------------

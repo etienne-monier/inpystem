@@ -2,7 +2,7 @@ Introduction
 ============
 
 What is inpystem
---------------
+----------------
 
 inpystem is an open source Python library which provides tools to reconstruct partially sampled 2D images as multi-band images.
 
@@ -17,7 +17,9 @@ This library was originally developed by its creator Etienne Monier to handle EE
 About the developer
 -------------------
 
-This library is developed by Etienne Monier, a French PhD student.
+This library is developed by `Etienne Monier`_, a French PhD student.
+
+.. _Etienne Monier: http://monier.perso.enseeiht.fr/
 
 His research interests are in new methods and algorithms to solve challenging acquisition problems encountered in the acquisition of multi-band microscopy images. In particular, he is interested in acquiring high-SNR Electron Energy Loss Spectroscopy (EELS) images with extremely low beam energy to prevent destruction of sensitive microscopy samples. His goal is to provide to the EELS community precise algorithms to detect rapidly the presence of a chemical element inside a sample to reduce irradiation as much as possible. Such problem requires **signal processing** methods, such as **convex optimization** and **proximal splitting** methods.
 

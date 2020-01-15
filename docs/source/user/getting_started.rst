@@ -6,7 +6,7 @@ Getting started
 In this documentation, we will assume that the reader can write some command line or jupyter python.
 
 Starting inpystem in python
--------------------------
+---------------------------
 
 inpystem can be imported in python just as any python package.
 
@@ -121,7 +121,7 @@ Well, data here are nothing else than `HyperSpy`_ data. Please refer to its `doc
 .. _sec-result-data:
 
 The result is inpystem data
--------------------------
+---------------------------
 
 As explained previously, the inpystem data is the combination of a :class:`~.signals.Scan` object and an HyperSpy data. Two classes are proposed to the user:
 
@@ -219,6 +219,9 @@ Other arguments (such as the scan pattern ratio) can be passed to the two load f
 
 .. _this page: https://docs.python.org/3/library/configparser.html#supported-ini-file-structure
 
+.. note::
+    From this point, the examples can be tested directly in the command line as long as the data path is set and that the inpystem example data are downloaded and placed inside the data path. See :ref:`example_data` for more details.
+
 What about restoration ?
 ------------------------
 
@@ -229,7 +232,7 @@ The methods to reconstruct the data include nearest neighbor interpolation, regu
 .. code-block:: python
 
     >>> import inpystem
-    >>> data = inpystem.load_example('HR-sample', ndim=2, scan_ratio=0.2)  # This loads example data.
+    >>> data = inpystem.load_key('HR-sample', ndim=2, scan_ratio=0.2)  # This loads example data.
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
