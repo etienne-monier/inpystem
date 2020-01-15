@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PyStem module.
+inpystem module.
 
 Description here.
 """

@@ -1,8 +1,8 @@
-pystem.restore.LS_CLS module
+inpystem.restore.LS_CLS module
 ===========================
 
-.. automodule:: pystem.restore.LS_CLS
+.. automodule:: inpystem.restore.LS_CLS
 
-.. autofunction:: pystem.restore.LS_CLS.CLS
+.. autofunction:: inpystem.restore.LS_CLS.CLS
 
-.. autofunction:: pystem.restore.LS_CLS.Post_LS_CLS
+.. autofunction:: inpystem.restore.LS_CLS.Post_LS_CLS

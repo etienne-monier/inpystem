@@ -1,7 +1,7 @@
 dev module
 ==========
 
-.. automodule:: pystem.dev
+.. automodule:: inpystem.dev
 
 .. autoclass:: AbstractDev
   :members:

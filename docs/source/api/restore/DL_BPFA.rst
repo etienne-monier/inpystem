@@ -1,5 +1,5 @@
-pystem.restore.DL_BPFA module
+inpystem.restore.DL_BPFA module
 ===================================
 
-.. automodule:: pystem.restore.DL_BPFA
+.. automodule:: inpystem.restore.DL_BPFA
   :members:

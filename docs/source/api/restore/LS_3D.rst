@@ -1,8 +1,8 @@
-pystem.restore.LS_3D module
+inpystem.restore.LS_3D module
 ===========================
 
-.. automodule:: pystem.restore.LS_3D
+.. automodule:: inpystem.restore.LS_3D
 
-.. autofunction:: pystem.restore.LS_3D.SSS
+.. autofunction:: inpystem.restore.LS_3D.SSS
 
-.. autofunction:: pystem.restore.LS_3D.SNN
+.. autofunction:: inpystem.restore.LS_3D.SNN

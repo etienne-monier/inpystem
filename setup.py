@@ -12,7 +12,7 @@ def get_data_files():
     data_dirs = ['data/', 'restore/MatlabCodes/']
 
     for directory in data_dirs:
-        p = pathlib.Path('pystem/' + directory)
+        p = pathlib.Path('inpystem/' + directory)
 
         for file in p.rglob('*'):
             if file.suffix != '.mat' and not file.is_dir():
@@ -33,11 +33,11 @@ def get_long_description():
 
 # Load versioning data
 version = {}
-with open("pystem/version.py") as fp:
+with open("inpystem/version.py") as fp:
     exec(fp.read(), version)
 
 
-# Packages that are required for pystem
+# Packages that are required for inpystem
 install_req = ['numpy',
                'scipy',
                'matplotlib',
@@ -50,20 +50,20 @@ install_req = ['numpy',
 setuptools.setup(
     # Name and version
     #
-    name='pystem',
+    name='inpystem',
     version=version['version'],
-    package_dir={'pystem': 'pystem'},
+    package_dir={'inpystem': 'inpystem'},
 
     # Required installations
     install_requires=install_req,
-    packages=['pystem',
-              'pystem.restore',
-              'pystem.tools',
-              'pystem.tests',
-              # 'pystem.tests.restore',
-              'pystem.tests.tools'],
+    packages=['inpystem',
+              'inpystem.restore',
+              'inpystem.tools',
+              'inpystem.tests',
+              # 'inpystem.tests.restore',
+              'inpystem.tests.tools'],
     package_data={
-        'pystem': get_data_files()
+        'inpystem': get_data_files()
         },
     include_package_data=True,
 

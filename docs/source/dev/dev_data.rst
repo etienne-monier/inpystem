@@ -48,14 +48,14 @@ In addition to these arguments, a required input is :code:`key` which is a small
 
 .. code-block:: python
 
-    >>> stem2d_data = pystem.load_example('HR-sample', 2)
+    >>> stem2d_data = inpystem.load_example('HR-sample', 2)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
     Correcting STEM acquisition...
     >>> scan_shape = stem2d_data.scan.shape
-    >>> scan = pystem.Scan.random(shape=scan_shape, ratio=0.5)
-    >>> dev_data = pystem.Dev2D('my-dev-data', hsdata=stem2d_data.hsdata, scan=scan, sigma=0.5, seed=0)
+    >>> scan = inpystem.Scan.random(shape=scan_shape, ratio=0.5)
+    >>> dev_data = inpystem.Dev2D('my-dev-data', hsdata=stem2d_data.hsdata, scan=scan, sigma=0.5, seed=0)
     Creating STEM acquisition...
     >>> dev_data
     <Dev2D, title: HR-sample, dimensions: (|113, 63), sampling ratio: 0.50>
@@ -72,7 +72,7 @@ The :func:`~.dataset.load_file`, :func:`~.dataset.load_key` and :func:`~.dataset
 .. code-block:: python
 
     >>> dev = {'sigma': 0.5, 'seed': 0}
-    >>> pystem.load_example('HR-sample', 2, dev=dev, scan_ratio=0.5, scan_seed=1)
+    >>> inpystem.load_example('HR-sample', 2, dev=dev, scan_ratio=0.5, scan_seed=1)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
@@ -116,7 +116,7 @@ In the case of the :class:`~.dev.Dev3D` class, these parameters are given at ini
 .. code-block:: python
 
     >>> dev = {'sigma': 0.5, 'PCA_transform': False}
-    >>> data = pystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
@@ -145,7 +145,7 @@ In the case of True :attr:`~.dev.Dev3D.PCA_transform` at initialization, a PCA p
 .. code-block:: python
 
     >>> dev = {'sigma': 0.5, 'PCA_transform': True}
-    >>> data = pystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
@@ -182,11 +182,11 @@ These methods incorporate also normalization procedure inside. This means that t
 
 .. code-block:: python
     
-    >>> import pystem
+    >>> import inpystem
     
     # Case with non-PCA-initialized object
     >>> dev = {'sigma': 0.5, 'PCA_transform': False, 'normalize': False}
-    >>> data = pystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
     >>> direct_data = data.direct_transform(data.data)  # Performing direct transformation to data
     >>> inverse_data = data.inverse_transform(data.data)  # Performing inverse transformation to data
     >>> import numpy.testing as npt  # This is to check arrays are equal
@@ -194,7 +194,7 @@ These methods incorporate also normalization procedure inside. This means that t
     >>> npt.assert_allclose(data.data, inverse_data)  # Equal
 
     >>> dev = {'sigma': 0.5, 'PCA_transform': False}  # Non-normalized here
-    >>> data = pystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
     >>> direct_data = data.direct_transform(data.data)
     >>> inverse_data = data.inverse_transform(direct_data)
     >>> npt.assert_allclose(data.data, direct_data)  # Error because of normalization
@@ -202,7 +202,7 @@ These methods incorporate also normalization procedure inside. This means that t
 
     # Case with PCA-initialized object
     >>> dev = {'sigma': 0.5, 'PCA_transform': True}
-    >>> data = pystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
     >>> inverse_data = data.inverse_transform(data.data)
     >>> direct_data = data.direct_transform(inverse_data)
     >>> npt.assert_allclose(data.data, direct_data)  # Equal: direct, then inverse is still identity :)

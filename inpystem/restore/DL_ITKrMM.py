@@ -217,7 +217,7 @@ class Dico_Learning_Executer:
 
         self.invert_function = self.dico_to_data if invert_function is None\
             else functools.partial(
-                invert_function, pystem_inverse_fct=self.dico_to_data)
+                invert_function, inpystem_inverse_fct=self.dico_to_data)
 
     def dico_to_data(self, dico):
         """Estimate reconstructed data based on the provided dictionary.

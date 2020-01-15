@@ -1,8 +1,8 @@
-pystem.tools.FISTA module
+inpystem.tools.FISTA module
 =========================
 
-.. automodule:: pystem.tools.FISTA
+.. automodule:: inpystem.tools.FISTA
 
-.. autoclass:: pystem.tools.FISTA.FISTA
+.. autoclass:: inpystem.tools.FISTA.FISTA
   :members:
   :member-order: bysource

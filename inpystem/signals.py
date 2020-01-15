@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This package defines all sort of classes to handle data for pystem.
+"""This package defines all sort of classes to handle data for inpystem.
 """
 
 import abc

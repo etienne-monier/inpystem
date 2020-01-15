@@ -1,5 +1,5 @@
-pystem.restore.interpolation module
+inpystem.restore.interpolation module
 ===================================
 
-.. automodule:: pystem.restore.interpolation
+.. automodule:: inpystem.restore.interpolation
   :members:

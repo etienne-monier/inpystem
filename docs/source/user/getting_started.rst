@@ -5,16 +5,16 @@ Getting started
 
 In this documentation, we will assume that the reader can write some command line or jupyter python.
 
-Starting pystem in python
+Starting inpystem in python
 -------------------------
 
-pystem can be imported in python just as any python package.
+inpystem can be imported in python just as any python package.
 
 .. code-block:: python
 
-    >>> import pystem
+    >>> import inpystem
 
-In addition to pystem, the `HyperSpy`_ library is required to construct the pystem objects as some arguments should be HyperSpy data.
+In addition to inpystem, the `HyperSpy`_ library is required to construct the inpystem objects as some arguments should be HyperSpy data.
 
 .. code-block:: python
 
@@ -37,7 +37,7 @@ A STEM acquisition here is the result of two main informations:
 * **The scan pattern** which is basically the array of the visited pixels indexes,
 * **The data** which are the values of the data at the sampled pixels.
 
-Be aware that the pystem library can handle 2D (e.g. HAADF data) as 3D data (e.g. EELS data). The data that are acquired at a spatial position (or pixel) can then be a single value (for 2D) or a spectrum (for 3D).
+Be aware that the inpystem library can handle 2D (e.g. HAADF data) as 3D data (e.g. EELS data). The data that are acquired at a spatial position (or pixel) can then be a single value (for 2D) or a spectrum (for 3D).
 
 
 .. _sec-basic-object-scan:
@@ -51,7 +51,7 @@ The basic object to understand is the :class:`~.signals.Scan` class. This is an 
 
     >>> shape = (3, 4)  # This is the spatial shape of the data : 3 rows, 4 columns.
     >>> path = [ 1,  3,  6,  4,  7, 11,  8,  0]  # These are the sampled pixels indexes.
-    >>> scan = pystem.Scan(shape, path)
+    >>> scan = inpystem.Scan(shape, path)
     >>> scan
     <Scan, shape: (3, 4), ratio: 0.667>
 
@@ -75,7 +75,7 @@ Thought, be careful in case the acquisition is partially sampled (or example, if
     >>> scan
     <Scan, shape: (3, 4), ratio: 0.500>
 
-    >>> scan = pystem.Scan(shape, path, ratio=0.5)  # The ratio can be given at initialization.
+    >>> scan = inpystem.Scan(shape, path, ratio=0.5)  # The ratio can be given at initialization.
     >>> scan
     <Scan, shape: (3, 4), ratio: 0.500>
     >>> scan.ratio = 0.667  # But don't worry, the additional visited pixels are not lost.
@@ -86,7 +86,7 @@ In fact, the pixels that are given at initialization of :code:`scan` are not los
 
 .. code-block:: python
 
-    >>> scan = pystem.Scan(shape, path, ratio=0.5)  # The ratio can be given at initialization.
+    >>> scan = inpystem.Scan(shape, path, ratio=0.5)  # The ratio can be given at initialization.
     >>> scan
     <Scan, shape: (3, 4), ratio: 0.500>
     >>> scan.path
@@ -120,10 +120,10 @@ Well, data here are nothing else than `HyperSpy`_ data. Please refer to its `doc
 
 .. _sec-result-data:
 
-The result is pystem data
+The result is inpystem data
 -------------------------
 
-As explained previously, the pystem data is the combination of a :class:`~.signals.Scan` object and an HyperSpy data. Two classes are proposed to the user:
+As explained previously, the inpystem data is the combination of a :class:`~.signals.Scan` object and an HyperSpy data. Two classes are proposed to the user:
 
 * :class:`~.signals.Stem2D` for 2D data,
 * :class:`~.signals.Stem2D` for 3D data.
@@ -134,23 +134,23 @@ Both are initialized with a scan pattern and the associated data. Though, the sc
     
      >>> import hyperspy.api as hs
      >>> haadf_hs = hs.load('haadf_data.dm4')
-     >>> acquisition_1 = pystem.Stem2D(haadf_hs)  # fully sampled HAADF image.
+     >>> acquisition_1 = inpystem.Stem2D(haadf_hs)  # fully sampled HAADF image.
 
      >>> m, n = haadf_hs.data.shape
      >>> N = int(0.5*m*n)  # The number of pixels to visit.
      >>> path = np.random.permutation(m*n)[:N]
-     >>> scan = pystem.Scan((m, n), path)
-     >>> acquisition_2 = pystem.Stem2D(haadf_hs, scan)  # partially sampled HAADF image.
+     >>> scan = inpystem.Scan((m, n), path)
+     >>> acquisition_2 = inpystem.Stem2D(haadf_hs, scan)  # partially sampled HAADF image.
 
      >>> eels_hs = hs.load('eels_data.dm4')
-     >>> acquisition_3 = pystem.Stem3D(eels_hs)  # fully sampled EELS image.
+     >>> acquisition_3 = inpystem.Stem3D(eels_hs)  # fully sampled EELS image.
 
 .. _sec-loading-data:
 
 Loading your data is faster
 ---------------------------
 
-pystem offers you a way to accelerate the data definition. To that end, pystem proposes you to setup a data directory (let's say :code:`/my/wonderful/data/dir/`) and to put inside your data so that the structure looks like this:
+inpystem offers you a way to accelerate the data definition. To that end, inpystem proposes you to setup a data directory (let's say :code:`/my/wonderful/data/dir/`) and to put inside your data so that the structure looks like this:
 
 ::
  
@@ -172,8 +172,8 @@ pystem offers you a way to accelerate the data definition. To that end, pystem p
     
     .. code-block:: python
     
-        >>> pystem.set_data_path('/my/wonderful/data/dir/')
-        >>> pystem.read_data_path()
+        >>> inpystem.set_data_path('/my/wonderful/data/dir/')
+        >>> inpystem.read_data_path()
         '/my/wonderful/data/dir/'
 
 
@@ -203,16 +203,16 @@ The configuration file has the structure of a ``.ini`` file (have a look at `thi
     # This section defines all info about scan pattern
     FILE = scan.dm4
 
-This file defines all is necessary to define the pystem data objects. To load the corresponding data, one should use the :func:`~.dataset.load_file` function which loads the data based on the :code:`.conf` configuration file. Alternatively, pystem can load the :code:`mydata.conf` data directly by using the :func:`~.dataset.load_key` with the :code:`mydata` key (as long as :code:`mydata.conf` is located inside the data directory). The difference between the two functions ? :func:`~.dataset.load_file` **allows you to load a file which is not in the data directory**.
+This file defines all is necessary to define the inpystem data objects. To load the corresponding data, one should use the :func:`~.dataset.load_file` function which loads the data based on the :code:`.conf` configuration file. Alternatively, inpystem can load the :code:`mydata.conf` data directly by using the :func:`~.dataset.load_key` with the :code:`mydata` key (as long as :code:`mydata.conf` is located inside the data directory). The difference between the two functions ? :func:`~.dataset.load_file` **allows you to load a file which is not in the data directory**.
 
 In addition to the configuration file path, the user should specify which data to load with the :code:`ndim` argument (2 for 2D data and 3 for 3D data).
 
 .. code-block:: python
 
-    >>> pystem.get_data_path()
+    >>> inpystem.get_data_path()
     /my/wonderful/data/dir/
-    >>> acquisition = pystem.load_key('MyData1')
-    >>> acquisition = pystem.load_file('/my/wonderful/data/dir/MyData2.conf', ndim=2)  
+    >>> acquisition = inpystem.load_key('MyData1')
+    >>> acquisition = inpystem.load_file('/my/wonderful/data/dir/MyData2.conf', ndim=2)  
 
 Other arguments (such as the scan pattern ratio) can be passed to the two load function. That will be seen later.
 
@@ -222,14 +222,14 @@ Other arguments (such as the scan pattern ratio) can be passed to the two load f
 What about restoration ?
 ------------------------
 
-Well, everything was loaded and is ready for reconstruction. Lets us consider that your acquisition was partially sampled with a ratio of 0.2. So, to use any reconstruction method, use the :meth:`~.signals.AbstractStem.restore` method of pystem objects.
+Well, everything was loaded and is ready for reconstruction. Lets us consider that your acquisition was partially sampled with a ratio of 0.2. So, to use any reconstruction method, use the :meth:`~.signals.AbstractStem.restore` method of inpystem objects.
 
-The methods to reconstruct the data include nearest neighbor interpolation, regularized least-square and dictionary learning. Let's try with an example data (pystem has three dataset that can be loaded easily, this will be mentioned in).
+The methods to reconstruct the data include nearest neighbor interpolation, regularized least-square and dictionary learning. Let's try with an example data (inpystem has three dataset that can be loaded easily, this will be mentioned in).
 
 .. code-block:: python
 
-    >>> import pystem
-    >>> data = pystem.load_example('HR-sample', ndim=2, scan_ratio=0.2)  # This loads example data.
+    >>> import inpystem
+    >>> data = inpystem.load_example('HR-sample', ndim=2, scan_ratio=0.2)  # This loads example data.
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...

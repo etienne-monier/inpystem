@@ -1,4 +1,4 @@
-pystem User Guide
+inpystem User Guide
 =================
 
 .. toctree::

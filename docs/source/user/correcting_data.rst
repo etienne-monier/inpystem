@@ -55,7 +55,7 @@ For the above example, one should write the following code.
 Correcting data with the configuration file
 -------------------------------------------
 
-A lot of information can be given to pystem through the configuration file. To pass correction info to the load functions, all you need is to define slices inside the corresponding :code:`2D DATA` or :code:`3D DATA` sections. For this, use the following keys: :code:`rows`, :code:`columns`, :code:`bands` and :code:`dpixels`. The slice should be written as for numpy array selection (:code:`1:-60`). Let's illustrate is with the configuration file of the HR-sample example image.
+A lot of information can be given to inpystem through the configuration file. To pass correction info to the load functions, all you need is to define slices inside the corresponding :code:`2D DATA` or :code:`3D DATA` sections. For this, use the following keys: :code:`rows`, :code:`columns`, :code:`bands` and :code:`dpixels`. The slice should be written as for numpy array selection (:code:`1:-60`). Let's illustrate is with the configuration file of the HR-sample example image.
 
 .. code-block:: ini
 
@@ -72,5 +72,5 @@ A lot of information can be given to pystem through the configuration file. To p
 
 .. note:: Contrary to the :meth:`~.signals.AbstractStem.correct` method which allows slices, the configuration files require literal slices such as :code:`1:-50`.
     
-    One other main difference is that slices objects *do not accept negative values* while the configuration files values are parsed and *accept negative values*. As a consequence, to tell pystem you just want to keep all rows but the first one and the five last ones, you should write :code:`slice(1:m-1)` (where :code:`m` is the number of rows) for the :meth:`~.signals.AbstractStem.correct` method while the configuration file would accept :code:`1:-5`.
+    One other main difference is that slices objects *do not accept negative values* while the configuration files values are parsed and *accept negative values*. As a consequence, to tell inpystem you just want to keep all rows but the first one and the five last ones, you should write :code:`slice(1:m-1)` (where :code:`m` is the number of rows) for the :meth:`~.signals.AbstractStem.correct` method while the configuration file would accept :code:`1:-5`.
 

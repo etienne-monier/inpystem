@@ -1,5 +1,5 @@
-pystem.tools.matlab_interface module
+inpystem.tools.matlab_interface module
 ====================================
 
-.. automodule:: pystem.tools.matlab_interface
+.. automodule:: inpystem.tools.matlab_interface
   :members:

@@ -5,7 +5,7 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SOURCEDIR     = source
-BUILDDIR      = build# ../../pystem-docs
+BUILDDIR      = build# ../../inpystem-docs
 # PDFBUILDDIR   = build
 # PDF           = ../manual.pdf
 

@@ -20,7 +20,7 @@ def sec2str(t):
 
     Example
     -------
-    >>> from pystem.tools.sec2str import sec2str
+    >>> from inpystem.tools.sec2str import sec2str
     >>> sec2str(5.2056)
     5.21s
     >>> sec2str(3905)

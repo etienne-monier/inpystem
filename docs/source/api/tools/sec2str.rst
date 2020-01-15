@@ -1,5 +1,5 @@
-pystem.tools.sec2str module
+inpystem.tools.sec2str module
 ===========================
 
-.. automodule:: pystem.tools.sec2str
+.. automodule:: inpystem.tools.sec2str
   :members:

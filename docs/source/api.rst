@@ -1,7 +1,7 @@
-Full pystem API documentation
+Full inpystem API documentation
 =============================
 
-.. automodule:: pystem
+.. automodule:: inpystem
 
 
 .. toctree::

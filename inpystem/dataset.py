@@ -19,9 +19,9 @@ _logger = logging.getLogger(__name__)
 def read_data_path():
     """Read the saved data folder path.
 
-    The pystem library proposes to store all data in a particular
+    The inpystem library proposes to store all data in a particular
     directory with associated configuration files. This folder
-    is saved in pystem. To access to this folder path, use this
+    is saved in inpystem. To access to this folder path, use this
     function.
 
     If no data path is saved, the function returns None. Else, the
@@ -51,14 +51,14 @@ def read_data_path():
         _logger.error(
             'The dataset PATH file is corrupted.'
             'Please define one new with '
-            'pystem.dataset.set_data_path.'
+            'inpystem.dataset.set_data_path.'
             )
     else:
         # If the program gets here, that means that no data path is
         # saved.
         _logger.warning(
             'No dataset PATH has been defined. Please define one with '
-            'pystem.dataset.set_data_path.')
+            'inpystem.dataset.set_data_path.')
 
     return None
 
@@ -66,9 +66,9 @@ def read_data_path():
 def set_data_path(path):
     """Sets the saved data folder path.
 
-    The pystem library proposes to store all data in a particular
+    The inpystem library proposes to store all data in a particular
     directory with associated configuration files. This folder
-    is saved in pystem. To set to this folder path, use this
+    is saved in inpystem. To set to this folder path, use this
     function.
 
     A boolean is returned to confirm that the change is effective.
@@ -158,7 +158,7 @@ def load_file(
     Returns
     -------
     Stem2D, Stem3D, Dev2D, Dev3D
-        The pystem data.
+        The inpystem data.
 
     Todo
     ----
@@ -283,8 +283,8 @@ def load_key(
     A key is a string which can be:
 
     * an example data name,
-    * the name of some data located in the pystem data path (which is
-      defined with the :py:func:`pystem.dataset.set_data_path`
+    * the name of some data located in the inpystem data path (which is
+      defined with the :py:func:`inpystem.dataset.set_data_path`
       function).
 
     The key should always be the name of the configuration file without
@@ -338,7 +338,7 @@ def load_key(
     Returns
     -------
     Stem2D, Stem3D, Dev2D, Dev3D
-        The pystem data.
+        The inpystem data.
     """
 
     if read_data_path() is None:
@@ -435,7 +435,7 @@ def load_example(
     Returns
     -------
     Stem2D, Stem3D, Dev2D, Dev3D
-        The pystem data.
+        The inpystem data.
     """
     if key == 'HR-sample':
         data_path = pathlib.Path(__file__).parent / 'data' / 'HR-sample' / \

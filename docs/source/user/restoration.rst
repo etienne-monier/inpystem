@@ -1,7 +1,7 @@
 Restoration
 ===========
 
-Welcome to the main page of this documentation. The pystem library is nothing else than a pluggin to HyperSpy to allow reconstruction.
+Welcome to the main page of this documentation. The inpystem library is nothing else than a pluggin to HyperSpy to allow reconstruction.
 
 Some words about pre and post-processing steps
 ----------------------------------------------
@@ -65,7 +65,7 @@ A common reconstruction task will then look like this.
 
 .. code-block:: python
 
-    >>> data = pystem.load_example('HR-sample', ndim=2, scan_ratio=0.2)
+    >>> data = inpystem.load_example('HR-sample', ndim=2, scan_ratio=0.2)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...

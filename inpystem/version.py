@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-name = 'pystem'
+name = 'inpystem'
 
 version = "0.1a"
 description = "A python library for STEM acquisition inpainting."
@@ -12,8 +12,8 @@ author = {
     }
 
 url = {
-    "Source Code": "https://github.com/etienne-monier/pystem",
-    "Documentation": 'https://pystem.readthedocs.io/en/latest/index.html',
+    "Source Code": "https://github.com/etienne-monier/inpystem",
+    "Documentation": 'https://inpystem.readthedocs.io/en/latest/index.html',
     }
 
 platforms = ['Linux']
@@ -44,7 +44,7 @@ classifiers = [
 ]
 
 info = """
-    pystem
+    inpystem
     Version %s
-    https://github.com/etienne-monier/pystem
+    https://github.com/etienne-monier/inpystem
     """.format(version)

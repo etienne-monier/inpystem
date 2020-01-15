@@ -2,7 +2,7 @@ signals module
 ==============
 
 
-.. automodule:: pystem.signals
+.. automodule:: inpystem.signals
 
 
 The Scan class

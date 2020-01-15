@@ -1,7 +1,7 @@
 dataset module
 ==============
 
-.. automodule:: pystem.dataset
+.. automodule:: inpystem.dataset
 
 
 Data path functions

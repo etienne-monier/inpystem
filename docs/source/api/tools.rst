@@ -1,7 +1,7 @@
-pystem.tools subpackage
+inpystem.tools subpackage
 =======================
 
-.. automodule:: pystem.tools
+.. automodule:: inpystem.tools
 
 .. toctree::
    :maxdepth: 1

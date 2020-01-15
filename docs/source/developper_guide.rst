@@ -1,4 +1,4 @@
-pystem Developper Guide
+inpystem Developper Guide
 =======================
 
 Well, for now, this small library is developed by myself. I don't know yet how much this could be usefull. However, if someone is interested to help me, please let me know at *etienne[dot]monier[at]enseeiht[dot]fr*.

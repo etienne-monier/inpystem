@@ -1,14 +1,14 @@
 Introduction
 ============
 
-What is pystem
+What is inpystem
 --------------
 
-pystem is an open source Python library which provides tools to reconstruct partially sampled 2D images as multi-band images.
+inpystem is an open source Python library which provides tools to reconstruct partially sampled 2D images as multi-band images.
 
-pystem's core is a set of reconstruction techniques such as interpolation, regularized least-square and dictionary learning methods. It provides a user interface which simplify the use of these techniques.
+inpystem's core is a set of reconstruction techniques such as interpolation, regularized least-square and dictionary learning methods. It provides a user interface which simplify the use of these techniques.
 
-pystem is mainly at the destination of the microscopy community so that it highly depends on the good library HyperSpy_.
+inpystem is mainly at the destination of the microscopy community so that it highly depends on the good library HyperSpy_.
 
 This library was originally developed by its creator Etienne Monier to handle EELS data and develop reconstruction algorithms. This was proposed afterwards to the microscopy community as a tool. 
 

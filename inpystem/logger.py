@@ -15,7 +15,7 @@ def get_log_file_location():
         The log file location.
     """
     p = pathlib.Path(__file__)
-    return str(p.parent) + '/pystem.log'
+    return str(p.parent) + '/inpystem.log'
 
 
 def configure_logger():
@@ -27,7 +27,7 @@ def configure_logger():
         format=console_format,
         )
 
-    _logger = logging.getLogger('pystem')
+    _logger = logging.getLogger('inpystem')
     if not _logger.handlers:
 
         # Define a Handler which writes INFO messages or higher to a
@@ -54,7 +54,7 @@ def configure_logger():
 
 def set_log_level(level):
     """
-    Convenience function to set the log level of all pystem modules.
+    Convenience function to set the log level of all inpystem modules.
     Note: The log level of all other modules are left untouched.
 
     Parameters
@@ -70,4 +70,4 @@ def set_log_level(level):
             - 'NOTSET'
     """
     logging.basicConfig()  # Does nothing if already configured
-    logging.getLogger('pystem').setLevel(level)
+    logging.getLogger('inpystem').setLevel(level)

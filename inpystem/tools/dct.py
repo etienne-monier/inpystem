@@ -25,7 +25,7 @@ def dct2d(a):
 
     Example
     -------
-    >>> from pystem.tools.dct import dct2d
+    >>> from inpystem.tools.dct import dct2d
     >>> import scipy.misc
     >>> face = scipy.misc.face()
     >>> A = dct2d(face.sum(2))
@@ -49,7 +49,7 @@ def idct2d(a):
 
     Example
     -------
-    >>> from pystem.tools.dct import dct2d, idct2d
+    >>> from inpystem.tools.dct import dct2d, idct2d
     >>> import scipy.misc
     >>> face = scipy.misc.face()
     >>> A = dct2d(face.sum(2))
@@ -82,7 +82,7 @@ def dct2d_bb(x, size=None):
 
     Example
     -------
-    >>> from pystem.tools.dct import dct2d_bb
+    >>> from inpystem.tools.dct import dct2d_bb
     >>> import scipy.misc
     >>> face = scipy.misc.face()
     >>> A = dct2d_bb(face)
@@ -137,7 +137,7 @@ def idct2d_bb(a, size=None):
 
     Example
     -------
-    >>> from pystem.tools.dct import dct2d_bb, idct2d_bb
+    >>> from inpystem.tools.dct import dct2d_bb, idct2d_bb
     >>> import scipy.misc
     >>> import numpy.testing as npt
     >>> face = scipy.misc.face()

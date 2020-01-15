@@ -33,7 +33,7 @@ To that end, one should use the :meth:`~.signals.Scan.from_file` method of :clas
     >>> data_2_save = {'m': m, 'n': n, 'path': path}
     >>> np.savez('my_scan.npz', **data_2_save)  # This saves the Scan numpy file
 
-    >>> pystem.Scan.from_file('my_scan.npz', ratio=0.5) # This loads the numpy scan file.
+    >>> inpystem.Scan.from_file('my_scan.npz', ratio=0.5) # This loads the numpy scan file.
     <Scan, shape: (50, 100), ratio: 0.500>
 
 Initialize it as random sampling
@@ -43,36 +43,36 @@ The sampling scan can last be initialized with the :meth:`~.signals.Scan.random`
 
 .. code-block:: python
 
-    >>> pystem.Scan.random((50, 100))
+    >>> inpystem.Scan.random((50, 100))
     <Scan, shape: (50, 100), ratio: 1.000>
-    >>> scan = pystem.Scan.random((50, 100), ratio=0.2)
+    >>> scan = inpystem.Scan.random((50, 100), ratio=0.2)
     >>> scan
     <Scan, shape: (50, 100), ratio: 0.200>
     >>> scan.path[:5]
     array([4071,  662, 4168, 3787, 4584])
 
-    >>> scan = pystem.Scan.random((50, 100), ratio=0.2, seed=0)
+    >>> scan = inpystem.Scan.random((50, 100), ratio=0.2, seed=0)
     >>> scan.path[:5]
     array([ 398, 3833, 4836, 4572,  636])
-    >>> scan = pystem.Scan.random((50, 100), ratio=0.2, seed=0)
+    >>> scan = inpystem.Scan.random((50, 100), ratio=0.2, seed=0)
     >>> scan.path[:5]  # This shows that setting the seed makes the results reproducible.
     array([ 398, 3833, 4836, 4572,  636])
 
 
-Construct pystem data manually
+Construct inpystem data manually
 ------------------------------
 
-As explained in :ref:`sec-result-data`, the pystem data is composed of a :class:`~.signals.Scan` object which defines the sampling pattern and the HyperSpy data which stores the data. Once both have been defined, the pystem structure can be defined by hand.
+As explained in :ref:`sec-result-data`, the inpystem data is composed of a :class:`~.signals.Scan` object which defines the sampling pattern and the HyperSpy data which stores the data. Once both have been defined, the inpystem structure can be defined by hand.
 
 .. code-block:: python
 
-    >>> pystem_data = pystem.Stem2D(hsdata, scan=scan_object)
+    >>> inpystem_data = inpystem.Stem2D(hsdata, scan=scan_object)
 
 
-Construct pystem data from a Numpy array
+Construct inpystem data from a Numpy array
 ----------------------------------------
 
-In case your image is a numpy array, one should define the HyperSpy data before creating the pystem data.
+In case your image is a numpy array, one should define the HyperSpy data before creating the inpystem data.
 
 .. code-block:: python
 
@@ -80,18 +80,18 @@ In case your image is a numpy array, one should define the HyperSpy data before 
     >>> import hyperspy.api as hs
     >>> shape = (50, 100, 1500)                 # This is the 3D data shape
     >>> im = np.ones(shape)                     # This is our image (which is 3D this time).
-    >>> scan = pystem.Scan.random(shape[:2])    # The scan is created (be careful to have 2-tuple shape).
+    >>> scan = inpystem.Scan.random(shape[:2])    # The scan is created (be careful to have 2-tuple shape).
     >>> hsdata = hs.signals.Signal1D(im)        # Here, hs data is created from numpy array.
-    >>> pystem.Stem3D(hsdata, scan)
+    >>> inpystem.Stem3D(hsdata, scan)
     <Stem3D, title: , dimensions: (100, 50|1500), sampling ratio: 1.00>
 
 Well, the problem here, which is the same as for numpy-based HyperSpy data, is that both :code:`axes_manager` and :code:`metadata` are empty. To correct that, it is hygly recommended to use a configuration file. That's the subject of next section.
 
 
-Construct pystem data from a configuration file
+Construct inpystem data from a configuration file
 -----------------------------------------------
 
-As explained in :ref:`sec-loading-data`, pystem can load data from a :code:`.conf` configuration file. This is loaded by using the :func:`~.dataset.load_file` function (or the :func:`~.dataset.load_key` function if the configuration file is in the data path). To that end, a configuration file gives to pystem all important informations.
+As explained in :ref:`sec-loading-data`, inpystem can load data from a :code:`.conf` configuration file. This is loaded by using the :func:`~.dataset.load_file` function (or the :func:`~.dataset.load_key` function if the configuration file is in the data path). To that end, a configuration file gives to inpystem all important informations.
 
 First, the configuration file is separated in three main sections (case-sensitive, caution !):
 
@@ -99,7 +99,7 @@ First, the configuration file is separated in three main sections (case-sensitiv
 * :code:`DATA 3D` for 3D data,
 * :code:`SCAN` for the scan pattern.
 
-Among these sections, only one of :code:`DATA 2D` and :code:`DATA 3D` sections is required (if no data is given, pystem can not do anything ...). And inside this section, the only key which is required is :code:`file` which specifies the location of the data file (numpy :code:`.npy` or .dm4 or all other file which is allowed by HyperSpy) **relative to the configuration file**. One info: contrary to sections wich are case-sensitive, keys are not.
+Among these sections, only one of :code:`DATA 2D` and :code:`DATA 3D` sections is required (if no data is given, inpystem can not do anything ...). And inside this section, the only key which is required is :code:`file` which specifies the location of the data file (numpy :code:`.npy` or .dm4 or all other file which is allowed by HyperSpy) **relative to the configuration file**. One info: contrary to sections wich are case-sensitive, keys are not.
 
 In case no :code:`file` key is given inside a :code:`SCAN` section, the :func:`~.dataset.load_file` function **creates automatically a random scan object** (based on its :code:`scan_ratio` and :code:`scan_seed` arguments). Otherwise, a scan file (numpy or dm4/dm3) is loaded (the :code:`scan_ratio` argument of :func:`~.dataset.load_file` can still be given).
 
@@ -131,7 +131,7 @@ As an example, the previous section data axes_manager should look like this.
 
 .. code-block:: python
 
-    >>> data = pystem.Stem3D(hsdata, scan)
+    >>> data = inpystem.Stem3D(hsdata, scan)
     Creating STEM acquisition...
 
     >>> data.hsdata.axes_manager
@@ -170,13 +170,13 @@ And the data would be loaded by simply typing this.
 
 .. code-block:: python
 
-    >>> pystem.load_file('my-nice-file.conf', scan_ratio=0.5, scan_seed=0)
+    >>> inpystem.load_file('my-nice-file.conf', scan_ratio=0.5, scan_seed=0)
 
 
 Loading example data for fast testing
 -------------------------------------
 
-Last way to load data, use one of the example data provided by pystem. To that end, just use the :func:`~.dataset.load_example` function just as the :func:`~.dataset.load_key` with one of the following keys:
+Last way to load data, use one of the example data provided by inpystem. To that end, just use the :func:`~.dataset.load_example` function just as the :func:`~.dataset.load_key` with one of the following keys:
 
 * :code:`'HR-sample'`: this is a real atomic-scale HAADF/EELS sample,
 * :code:`'HR-synth'`: this is a synthetic EELS image generated to be similar to :code:`'HR-sample'`,

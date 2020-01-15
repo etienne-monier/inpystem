@@ -20,7 +20,7 @@ master_doc = 'index'
 
 # -- Project information -----------------------------------------------------
 
-project = 'pystem'
+project = 'inpystem'
 copyright = '2019, Etienne Monier'
 author = 'Etienne Monier'
 

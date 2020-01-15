@@ -2,7 +2,7 @@ init:
 	pip install -r requirements.txt
 
 test:
-	py.test tests
+	py.test
 
 html:
 	cd doc && make html
@@ -10,4 +10,5 @@ html:
 clean:
 	rm -R dist/
 	rm -R build/
-	rm -R pystem.egg-info/
+	rm -R inpystem.egg-info/
+	find inpystem/ -type d -name '__pycache__' -exec rm -R {} \;

@@ -1,5 +1,5 @@
-pystem.tools.metrics module
+inpystem.tools.metrics module
 ===========================
 
-.. automodule:: pystem.tools.metrics
+.. automodule:: inpystem.tools.metrics
   :members:

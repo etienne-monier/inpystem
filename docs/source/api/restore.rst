@@ -1,7 +1,7 @@
-pystem.restore subpackage
+inpystem.restore subpackage
 =========================
 
-.. automodule:: pystem.restore
+.. automodule:: inpystem.restore
 
 .. toctree::
    :maxdepth: 1

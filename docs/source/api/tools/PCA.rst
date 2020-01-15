@@ -1,7 +1,7 @@
-pystem.tools.PCA module
+inpystem.tools.PCA module
 =======================
 
-.. automodule:: pystem.tools.PCA
+.. automodule:: inpystem.tools.PCA
 
 The PcaHandler interface
 ------------------------

@@ -1,5 +1,5 @@
-pystem.tools.misc module
+inpystem.tools.misc module
 ===========================
 
-.. automodule:: pystem.tools.misc
+.. automodule:: inpystem.tools.misc
   :members:
