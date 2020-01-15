@@ -42,8 +42,8 @@ install_req = ['numpy',
                'scipy',
                'matplotlib',
                'hyperspy',
-               'numba',
-               'sklearn'
+               'scikit-learn',
+               'scikit-image>=0.16'
                ]
 
 

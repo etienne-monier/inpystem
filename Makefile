@@ -11,4 +11,3 @@ clean:
 	rm -R dist/
 	rm -R build/
 	rm -R inpystem.egg-info/
-	find inpystem/ -type d -name '__pycache__' -exec rm -R {} \;
