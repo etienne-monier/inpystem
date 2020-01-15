@@ -34,7 +34,7 @@ def read_data_path():
         is returned.
     """
     # This is the file which stores the data path.
-    file_path = pathlib.Path(__file__).parent / 'data' / 'path.conf'
+    file_path = pathlib.Path(__file__).parent / 'path.conf'
 
     if file_path.exists():
 
@@ -91,7 +91,7 @@ def set_data_path(path):
         p = path
 
     # This is the file that stores the data path.
-    file_path = pathlib.Path(__file__).parent / 'data' / 'path.conf'
+    file_path = pathlib.Path(__file__).parent / 'path.conf'
 
     if p.is_dir():
 
@@ -377,90 +377,3 @@ def load_key(
     _logger.info('Loading data from key: {}.'.format(key))
 
     return load_file(file, ndim, scan_ratio, scan_seed, dev, verbose)
-
-
-def load_example(
-        key, ndim, scan_ratio=None, scan_seed=None, dev=None, verbose=True):
-    """Loads example dataset.
-
-    The input key can be:
-
-    * :code:`HR-sample` for real high-resolution EELS data,
-    * :code:`HR-synth` for synthetic high-resolution EELS data,
-    * :code:`LR-synth` for synthetic low-resolution EELS data.
-
-    The number of dimensions ndim should also be given.
-
-    The Path is generated from a scan file given in the configuration
-    file or is randomly drawn. Whatever the case, the Scan object
-    :code:`ratio` property can be set through the :code:`scan_ratio`
-    argument. Additionally, in the case where no file is provided for
-    the scan pattern, use the :code:`scan_seed` argument to have
-    reproductible data.
-
-    The function allows the user to ask for development data by setting
-    the :code:`dev` argument. If :code:`dev` is None, then the usual
-    Stem2D and Stem3D classes are returned. If :code:`dev` is a
-    dictionary, then Dev2D and Dev3D classes are returned. This
-    dictionary could contain additional class arguments such as:
-
-    * snr, seed, normalized and verbose for Dev2D,
-    * snr, seed, normalized, PCA_transformed, PCA_th and verbose for
-      Dev3D.
-
-    This function only searches for the configuration file to use the
-    load_file function afterwards.
-
-    Arguments
-    ---------
-    key: str
-        The input key.
-    ndim: int
-        The data dimension. Should be 2 or 3.
-    scan_ratio: optional, None, float
-        The Path object ratio. Default is None for full sampling.
-    scan_seed: int
-        The seed in case of random scan initialization.
-        Default is None for random seed.
-    dev: optional, None, dictionary
-        This arguments allows the user to ask for development data.
-        If this is None, usual data is returned. If this argument is
-        a dictionary, then development data will be returned and the
-        dictionary will be given to the data contructors.
-        Default is None for usual data.
-    verbose: optional, bool
-        If True, information will be sent to standard output..
-        Default is True.
-
-    Returns
-    -------
-    Stem2D, Stem3D, Dev2D, Dev3D
-        The inpystem data.
-    """
-    if key == 'HR-sample':
-        data_path = pathlib.Path(__file__).parent / 'data' / 'HR-sample' / \
-            'HR-sample.conf'
-
-    elif key == 'HR-synth':
-        data_path = pathlib.Path(__file__).parent / 'data' / 'HR-synth' / \
-            'HR-synth.conf'
-
-    elif key == 'LR-synth':
-        data_path = pathlib.Path(__file__).parent / 'data' / 'LR-synth' / \
-            'LR-synth.conf'
-
-    else:
-        raise ValueError('Example data {} does not exist.'.format(key))
-
-    if not data_path.exists():
-        raise ValueError(
-            'Example data {} is not installed. Please go to the'
-            ' project Github page to download it and read the documentation'
-            ' to install it.'.format(key))
-
-    _logger.info('Loading example data: {}.'.format(key))
-
-    stem = load_file(data_path, ndim, scan_ratio, scan_seed, dev, verbose)
-    stem.hsdata.metadata.General.title = key
-
-    return stem
