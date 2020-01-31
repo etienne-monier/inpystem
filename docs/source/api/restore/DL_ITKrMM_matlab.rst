@@ -1,5 +1,5 @@
-inpystem.restore.DL_ITKrMM module
-===================================
+inpystem.restore.DL_ITKrMM_matlab module
+===========================================
 
 .. automodule:: inpystem.restore.DL_ITKrMM_matlab
 

@@ -1,11 +1,11 @@
 
 warning('off','all')
 
-% this file should contain the Y matrix, the mask, PatchSize, Omega, K,
+% this file should contain the Y matrix, the mask, P, Omega, K,
 % iter.
 
 % % Patch size (typical 2,4)
-% PatchSize=9;
+% P=9;
 % %GP parameter (typically set this number close to the wavelength)
 % Omega=1;
 % %dictionary size(typical 128 ,256)
@@ -21,21 +21,21 @@ Step = double(Step);
 start = tic;
 %% vectorize HSI
 disp('Vectorizes patches ...')
-[X Index Itab Jtab]=VectorizePatch(Y,mask,PatchSize,Step);
+[X Index Itab Jtab]=VectorizePatch(Y,mask,P,Step);
 
 %compute the covariance matrix
-[R Ron Rn]=CovMatrix(1:size(Y,3),Omega,PatchSize,false(size(Y,3)*PatchSize^2,1),PatchSize^2*size(Y,3));
+[R Ron Rn]=CovMatrix(1:size(Y,3),Omega,P,false(size(Y,3)*P^2,1),P^2*size(Y,3));
 
 %gp 
 disp('BPFA ...')
-[A S Z tao] = BPFA_GP(X,Index,R,K,PatchSize,iter);
+[A S Z tao] = BPFA_GP(X,Index,R,K,P,iter);
 
 %reconstruct the HSI
 imHat = A*(Z.*S)';
 
 %reconstruct the hyper-image
 disp('Reconstructing data ...')
-[Xhat]=InpaintingOutput(imHat,PatchSize,size(Y,1),size(Y,2), Itab, Jtab);
+[Xhat]=InpaintingOutput(imHat,P,size(Y,1),size(Y,2), Itab, Jtab);
 
 time = toc(start);
 

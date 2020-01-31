@@ -1,4 +1,4 @@
-function [A S Z tao] =BPFA_GP(X,Index,R,K,PatchSize,iter)
+function [A S Z tao] =BPFA_GP(X,Index,R,K,P,iter)
 %main function for Gaussian process BPFA algorithm
 %written by Zhengming Xing,Duke University,zx7@duke.edu
 [P N]=size(X);
@@ -22,7 +22,7 @@ Z=false(N,K);
 Pi=ones(K,1);
 alpha=1;
 phi=1;
-RR=blockinv(R,PatchSize);
+RR=blockinv(R,P);
 tao=ones(K,1);
 
 it=0;
@@ -40,9 +40,9 @@ while it<iter
     for j=1:K
         X_k(:,Z(:,j)) = X_k(:,Z(:,j)) + sparse_mult(Index(:,Z(:,j)),A(:,j),S(Z(:,j),j));
         sig_A=P*RR*tao(j)+diag(phi*Index(:,Z(:,j))*(S(Z(:,j),j).^2));
-        sig_A=blockinv(sig_A,PatchSize);
+        sig_A=blockinv(sig_A,P);
         mu_A=phi*sig_A*(X_k(:,Z(:,j))*S(Z(:,j),j));
-        A(:,j)=blockchol(sig_A,PatchSize)*randn(P,1)+mu_A;
+        A(:,j)=blockchol(sig_A,P)*randn(P,1)+mu_A;
         X_k(:,Z(:,j)) = X_k(:,Z(:,j)) - sparse_mult(Index(:,Z(:,j)),A(:,j),S(Z(:,j),j));
     end
 

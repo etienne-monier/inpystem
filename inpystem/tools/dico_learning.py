@@ -90,7 +90,7 @@ def inverse_patch_transform(data, shape):
 
 
 def CLS_init(
-        Y, Lambda, K=128, S=None, PatchSize=5, mask=None, PCA_transform=False,
+        Y, Lambda, K=128, S=None, P=5, mask=None, PCA_transform=False,
         PCA_th='auto', init=None, verbose=True):
     """Dictionary learning initialization based on CLS restoration algorithm.
 
@@ -105,8 +105,8 @@ def CLS_init(
         Default is 128.
     S: optional, int
         The code sparsity.
-        Default is 0.1*PatchSize*l.
-    PatchSize: optional, int
+        Default is 0.1*P*l.
+    P: optional, int
         The patch size.
         Default is 5.
     mask: optional, None, (m, n) boolean numpy array
@@ -130,9 +130,9 @@ def CLS_init(
 
     Returns
     -------
-    (K, l*PatchSize**2) numpy array
+    (K, l*P**2) numpy array
         The dictionary for dictionary learning algorithm.
-    (K, l*PatchSize**2) numpy array
+    (K, l*P**2) numpy array
         The sparse code for dictionary learning algorithm.
     (m, n, l) numpy array
         CLS restored array.
@@ -152,7 +152,7 @@ def CLS_init(
     """
 
     if S is None:
-        S = 0.1*PatchSize*Y.shape[2]
+        S = 0.1*P*Y.shape[2]
 
     #
     # Inpaint using CLS  -------------------
@@ -172,7 +172,7 @@ def CLS_init(
 
     #
     # Decompose CLS output into patches  -------------------
-    data = forward_patch_transform(Xhat, PatchSize).T
+    data = forward_patch_transform(Xhat, P).T
 
     #
     # Dico learning -------------------

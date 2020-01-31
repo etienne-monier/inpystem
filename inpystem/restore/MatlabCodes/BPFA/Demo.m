@@ -15,7 +15,7 @@ IMin0=R1;
 DataRatio=0.02;
 BandRatio=1;
 %patch size (typical 2,4)
-PatchSize=2;
+P=2;
 %GP parameter (typically set this number close to the wavelength)
 Omega=200;
 %dictionary size(typical 128 ,256)
@@ -25,15 +25,15 @@ iter=100;
 
 
 %take DataRatio% of the data and vectorize HSI
-[X Index]=VectorizePatch(R1,DataRatio,PatchSize);
+[X Index]=VectorizePatch(R1,DataRatio,P);
 %withhold (1-BandRatio)*100% of  bands as missing band
-[X Index MissIndex]=MissingBand(BandRatio,nBand,PatchSize,X,Index);
+[X Index MissIndex]=MissingBand(BandRatio,nBand,P,X,Index);
 %compute the covariance matrix
-[R Ron Rn]=CovMatrix(WaveLength,Omega,PatchSize,MissIndex);
+[R Ron Rn]=CovMatrix(WaveLength,Omega,P,MissIndex);
 %gp 
-[A S Z tao] =BPFA_GP(X,Index,R,K,PatchSize,iter);
+[A S Z tao] =BPFA_GP(X,Index,R,K,P,iter);
 %reconstruct the hyper-image
-[rec_image]=InpaintingOutput(A,S,Z,PatchSize,n1,n2);
+[rec_image]=InpaintingOutput(A,S,Z,P,n1,n2);
 
 %plot the result and caculated the PSNR
 if BandRatio==1
@@ -47,9 +47,9 @@ figure;
 subplot(1,2,1); imagesc(IMin0(:,:,100)); title('Original image');colorbar
 subplot(1,2,2); imagesc(rec_image(:,:,100)); title(['Restored image, ',num2str(PSNR),'dB']);colorbar
 else
-[A_pre]=GP_Predict(A,R,Ron,Rn,tao,PatchSize,K);
-[rec_missing_band]=InpaintingOutput(A_pre,S,Z,PatchSize,n1,n2);
-[rec_image]=InpaintingOutput(A,S,Z,PatchSize,n1,n2);
+[A_pre]=GP_Predict(A,R,Ron,Rn,tao,P,K);
+[rec_missing_band]=InpaintingOutput(A_pre,S,Z,P,n1,n2);
+[rec_image]=InpaintingOutput(A,S,Z,P,n1,n2);
 maxval=max(max(max(IMin0)));
 clim=[0 maxval];
 MissBand=MissIndex(1:nBand);

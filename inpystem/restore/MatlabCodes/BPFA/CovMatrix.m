@@ -1,4 +1,4 @@
-function [R Ron Rn]=CovMatrix(WaveLength,Omega,PatchSize,MissIndex,P)
+function [R Ron Rn]=CovMatrix(WaveLength,Omega,P,MissIndex,P)
 % caculated the covariance matrix for Gaussian process
 nBand=length(WaveLength);
 for i=1:nBand
@@ -9,8 +9,8 @@ end
 % Dis = eye(nBand)/P;
 Dis=double(Dis);
 tempR=exp(-Dis/Omega);
-RR=zeros(nBand*PatchSize^2,nBand*PatchSize^2);
-for i=1:PatchSize.^2
+RR=zeros(nBand*P^2,nBand*P^2);
+for i=1:P.^2
     RR((i-1)*nBand+1:(i)*nBand,(i-1)*nBand+1:(i)*nBand)=tempR;
     
 end

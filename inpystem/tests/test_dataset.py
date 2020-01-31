@@ -5,9 +5,6 @@ import pathlib
 import configparser
 import os
 
-import numpy as np
-import numpy.testing as npt
-
 from .. import dataset
 
 
@@ -16,9 +13,8 @@ class Test_Data_Path(unittest.TestCase):
     """
     def setUp(self):
 
-        self.p = pathlib.Path(__file__).parent / '..' / 'data' / 'path.conf'
-        self.pbak = pathlib.Path(__file__).parent / '..' / 'data' /\
-            'path.conf.back'
+        self.p = pathlib.Path(__file__).parent / '..' / 'path.conf'
+        self.pbak = pathlib.Path(__file__).parent / '..' / 'path.conf.back'
 
     def test_set_data_path(self):
 

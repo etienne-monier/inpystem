@@ -322,7 +322,7 @@ def Dimension_Reduction(Y, mask=None, PCA_th='auto', verbose=True):
     # Sets the PCA threshold level
     #
     if N <= M:
-        Auto = np.minimum(N-1, Rest)
+        Auto = N-1  # np.minimum(N-1, Rest)
         Max = N - 1
     else:
         Auto = Rest

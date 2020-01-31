@@ -1,5 +1,5 @@
 inpystem.tools.dct module
-=======================
+=========================
 
 .. automodule:: inpystem.tools.dct
 

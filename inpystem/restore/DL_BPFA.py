@@ -12,7 +12,7 @@ from ..tools import sec2str
 from ..tools import matlab_interface as matlab
 
 
-def BPFA_matlab(Y, mask, PatchSize=5, Omega=1, K=128, Nit=100, step=1,
+def BPFA_matlab(Y, mask, P=5, Omega=1, K=128, Nit=100, step=1,
                 PCA_transform=True, PCA_th='auto', verbose=True):
     """Implements BPFA algorithm for python.
 
@@ -25,7 +25,7 @@ def BPFA_matlab(Y, mask, PatchSize=5, Omega=1, K=128, Nit=100, step=1,
         The input data.
     mask: (m, n) numpy array
         The acquisition mask.
-    PatchSize: int
+    P: int
         The patch width.
         Default is 5.
     Omega: int
@@ -97,7 +97,7 @@ def BPFA_matlab(Y, mask, PatchSize=5, Omega=1, K=128, Nit=100, step=1,
     # Arguments.
     Dico = {'Y': Y_PCA,
             'mask': mask,
-            'PatchSize': PatchSize,
+            'P': P,
             'Omega': Omega,
             'K': K,
             'iter': Nit,
@@ -122,8 +122,8 @@ def BPFA_matlab(Y, mask, PatchSize=5, Omega=1, K=128, Nit=100, step=1,
 
     # Create output dico
     # Reshape output dico
-    shape_dico = (K, PatchSize, PatchSize) if Y.ndim == 2 else (
-        K, PatchSize, PatchSize, Y_PCA.shape[-1])
+    shape_dico = (K, P, P) if Y.ndim == 2 else (
+        K, P, P, Y_PCA.shape[-1])
     dico = dico_hat.T.reshape(shape_dico)
 
     # Create output data

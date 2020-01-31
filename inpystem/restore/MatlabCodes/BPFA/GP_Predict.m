@@ -1,7 +1,7 @@
-function [A_pre]=GP_Predict(A,R,Ron,Rn,tao,PatchSize,K) 
+function [A_pre]=GP_Predict(A,R,Ron,Rn,tao,P,K) 
 %caculate the dictionaries(A) for missing band, only use the mean here.
 %written by Zhengming Xing,Duke University,zx7@duke.edu
-RR=blockinv(R,PatchSize);
+RR=blockinv(R,P);
 for j=1:K
     A_pre(:,j)=Ron*RR*((A(:,j)));
     A_pre_v=tao(j)*(Rn-Ron*RR*Ron');

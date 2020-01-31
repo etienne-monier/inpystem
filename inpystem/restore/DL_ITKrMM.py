@@ -30,7 +30,7 @@ class Dico_Learning_Executer:
 
     * reshapes the data in patch format,
     * performs low-rank component estimation,
-    * launches the dictionary learning method,
+    * starts the dictionary learning method,
     * reshape output data,
     * handle CLS initialization to speed-up computation.
 
@@ -43,55 +43,56 @@ class Dico_Learning_Executer:
         Its value is Y if Y is 2D.
     mask: (m, n) numpy array
         The acquisition mask.
-    PatchSize: int
+    P: int
         The width (or height) of the patch.
-        Default is 5.
     K: int
-        The dictionary dimension.
-        Default is 128.
+        The dictionary dimension. This dictionary is composed of L low-rank
+        components and K-L non-low-rank components.
     L: int
         The number of low rank components to learn.
-        Default is 1.
     S: int
-        The code sparsity level. Default is 20.
+        The code sparsity level.
     Nit_lr: int
         The number of iterations for the low rank estimation.
-        Default is 10.
     Nit: int
-        The number of iterations. Default is 40.
+        The number of iterations.
     CLS_init: dico
-        CLS initialization inofrmation. See Note for details.
-        Default is None.
-    xref: (m, n) or (m, n, l) numpy array
-        Reference image to compute error evolution.
-        Default is None for input Y data.
+        CLS initialization inofrmation.
     verbose: bool
         The verbose parameter. Default is True.
-    data: (PatchSize**2, N) or (PatchSize**2*l, N) numpy array
-        The Y data in patch format. N is the number of patches.
-    mdata: (PatchSize**2, N) or (PatchSize**2*l, N) numpy array
-        The mask in patch format. N is the number of patches.
-    init: (PatchSize**2, K+L) or (PatchSize**2*l, K+L) numpy array
-        The initialization in patch format.
+    mean_std: 2-tuple
+        Tuple of size 2 which contains the data mean and std.
+    data: (N, D) numpy array
+        The Y data in patch format. N (resp. D) is the number of voxels per
+        patch (resp. patches).
+    mdata: (N, D) numpy array
+        The mask in patch format. N (resp. D) is the number of voxels per
+        patch (resp. patches).
+    init: (N, L) numpy array
+        The low-rank estimation initialization in patch format. N is the
+        number of voxels per patch.
+    init: (N, K-L) numpy array
+        The dictionary-learning initialization in patch format. N is the
+        number of voxels per patch.
     PCA_operator: PcaHandler object
         The PCA operator.
-    neam_std: 2-tuple
-        Tuple of size 2 which contains the data mean and std.
 
     Note
     ----
         The algorithm can be initialized with CLS as soon as
         :code:`CLS_init` is not None.  In this case, :code:`CLS_init`
         should be a dictionary containing the required :code:`Lambda`
-        key and other optional arguments required for CLS
-        (:code:`PCA_transform`, :code:`PCA_th`, :code:`init`).
+        key and eventually the CLS :code:`init` optional argument.
     """
 
-    def __init__(self, Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-                 Nit=40, init=None, CLS_init=None, xref=None,
-                 invert_function=None, verbose=True, PCA_transform=True,
-                 PCA_th='auto'):
-        """
+    def __init__(self, Y, mask=None,
+                 P=5, K=None, L=1, S=None,
+                 Nit_lr=10, Nit=40,
+                 init_lr=None, init=None, CLS_init=None,
+                 PCA_transform=True, PCA_th='auto',
+                 verbose=True):
+        """Dico_Learning_Executer __init__ function.
+
         Arguments
         ---------
         Y: (m, n) or (m, n, l) numpy array
@@ -99,33 +100,32 @@ class Dico_Learning_Executer:
         mask: optional, None, (m, n) numpy array
             The acquisition mask.
             Default is None for full sampling.
-        PatchSize: int
+        P: optional, int
             The width (or height) of the patch.
             Default is 5.
-        K: int
+        K: optional, int
             The dictionary dimension.
-            Default is 128.
-        L: int
+            Default is 2*P**2-1.
+        L: optional, int
             The number of low rank components to learn.
             Default is 1.
-        S: int
-            The code sparsity level. Default is 20. S should be
-            less than the patch size.
-        Nit_lr: int
+        S: optional, int
+            The code sparsity level. Default is P-L.
+            This should be lower than K-L.
+        Nit_lr: optional, int
             The number of iterations for the low rank estimation.
             Default is 10.
-        Nit: int
+        Nit: optional, int
             The number of iterations. Default is 40.
-        init: (PatchSize**2, K+L) or (PatchSize**2*l, K+L) numpy array
-            Initialization dictionary.
-        CLS_init: dico
-            CLS initialization inofrmation. See Note for details.
+        init_lr: optional, (N, L) numpy array
+            Initialization for low-rank component. N is the number of voxel in
+            a patch. Default is random initialization.
+        init: optional, (N, K-L) numpy array
+            Initialization for dictionary learning. N is the number of voxel
+            in a patch. Default is random initialization.
+        CLS_init: optional, dico
+            CLS initialization infrmation. See Note for details.
             Default is None.
-        xref: (m, n) or (m, n, l) numpy array
-            Reference image to compute error evolution.
-            Default is None for input Y data.
-        verbose: bool
-            The verbose parameter. Default is True.
         PCA_transform: optional, bool
             Enables the PCA transformation if True, otherwise, no PCA
             transformation is processed.
@@ -135,13 +135,15 @@ class Dico_Learning_Executer:
             Possible values are 'auto' for automatic choice, 'max' for maximum
             value and an int value for user value.
             Default is 'auto'.
+        verbose: bool
+            The verbose parameter. Default is True.
 
         Note
         ----
             The algorithm can be initialized with CLS as soon as
             :code:`CLS_init` is not None.  In this case, :code:`CLS_init`
             should be a dictionary containing the required :code:`Lambda`
-            key and eventually the :code:`init` optional argument.
+            key and eventually the CLS :code:`init` optional argument.
         """
 
         self.Y = Y
@@ -150,17 +152,16 @@ class Dico_Learning_Executer:
             mask = np.ones(Y.shape[:2])
 
         self.mask = mask
-        self.PatchSize = PatchSize
+        self.P = P
 
-        self.K = K
+        self.K = K if K is not None else 2*P**2-1
         self.L = L
-        self.S = S
+        self.S = S if S is not None else P-L
 
         self.Nit = Nit
         self.Nit_lr = Nit_lr
 
         self.CLS_init = CLS_init
-        self.xref = xref
 
         self.verbose = verbose
 
@@ -169,8 +170,8 @@ class Dico_Learning_Executer:
                 'Dico learning will not be initialized with CLS as input data '
                 'is not 3D. Random init used.')
 
-        if (S > PatchSize**2 and Y.ndim == 2) or (
-                S > PatchSize**2*Y.shape[-1] and Y.ndim == 3):
+        if (S > P**2 and Y.ndim == 2) or (
+                S > P**2*Y.shape[-1] and Y.ndim == 3):
             raise ValueError('S input is smaller than the patch size.')
 
         # Perform PCA if Y is 3D
@@ -204,46 +205,22 @@ class Dico_Learning_Executer:
             mask[:, :, np.newaxis], [1, 1, Y_PCA.shape[2]])
 
         # Observation
-        self.data = forward_patch_transform(Y_PCA * obs_mask, self.PatchSize)
+        self.data = forward_patch_transform(Y_PCA * obs_mask, self.P)
 
         # Mask
-        self.mdata = forward_patch_transform(obs_mask, self.PatchSize)
+        self.mdata = forward_patch_transform(obs_mask, self.P)
         self.data *= self.mdata
 
+        # Initialization
+        if init_lr is None:
+            self.init_lr = np.squeeze(rd.randn(self.data.shape[0], self.L))
+        else:
+            self.init_lr = init_lr
+
         if init is None:
-            self.init = rd.randn(self.data.shape[0], self.K)
+            self.init = rd.randn(self.data.shape[0], self.K - self.L)
         else:
             self.init = init
-
-        self.invert_function = self.dico_to_data if invert_function is None\
-            else functools.partial(
-                invert_function, inpystem_inverse_fct=self.dico_to_data)
-
-    def dico_to_data(self, dico):
-        """Estimate reconstructed data based on the provided dictionary.
-
-        Arguments
-        ---------
-        dico: (PatchSize**2, K) or (PatchSize**2*l, K) numpy array
-            The estimated dictionary.
-
-        Returns
-        -------
-        (m, n) or (m, n, l) numpy array
-            The reconstructed data
-        """
-        # Recontruct data from dico and coeffs.
-        coeffs = OMPm(dico.T, self.data.T, self.S, self.mdata.T)
-        outpatches = sps.csc_matrix.dot(dico, (coeffs.T).tocsc())
-
-        # Transform from patches to data.
-        Xhat = inverse_patch_transform(outpatches, self.Y_PCA.shape)
-        Xhat = Xhat * self.mean_std[1] + self.mean_std[0]
-
-        if self.Y.ndim == 3:
-            Xhat = self.PCA_operator.inverse(Xhat)
-
-        return Xhat
 
     def execute(self, method='ITKrMM'):
         """Executes dico learning restoration.
@@ -276,27 +253,32 @@ class Dico_Learning_Executer:
 
         start = time.time()
 
-        # Let us define the true number of dico atoms to search for init.
-        if method == "wKSVD":
-            K0 = self.K - self.L - 1  # As there's a DC component in wKSVD
+        # If CLS init, get init dico and lrc
+        if self.CLS_init is not None and self.Y.ndim == 3:
+
+            if self.verbose:
+                print('Learning low rank component and init with CLS...')
+
+            lrc, dico_init = self.get_CLS_init()
+
+            self.init_lr = lrc
+            self.init = dico_init
+
         else:
-            K0 = self.K - self.L  # For ITKrMM and others
+            # Otherwise, we should estimate the low-rank component.
 
-        #
-        # Learn lrc
-        #
-        if self.verbose:
-            print('Learning low rank component...')
-
-        if self.CLS_init is None or self.Y.ndim != 3:
+            if self.verbose:
+                print('Learning low rank component...')
 
             if self.L > 0:
 
+                local_init = self.init_lr if self.L > 1 else \
+                    self.init_lr[:, None]
                 lrc = np.zeros((self.data.shape[0], self.L))
 
                 for cnt in range(self.L):
 
-                    lrc_init = self.init[:, cnt]
+                    lrc_init = local_init[:, cnt]
 
                     if cnt > 0:
                         lrc_init -= lrc[:, :cnt] @ lrc[:, :cnt].T @ lrc_init
@@ -312,32 +294,6 @@ class Dico_Learning_Executer:
             else:
                 lrc = None
 
-            dicoinit = self.init[:, self.L:self.L + K0]
-
-        else:
-
-            # Get initialization dictionary
-            D, C, Xhat, InfoOut = CLS_init(
-                self.Y_PCA,
-                mask=self.mask,
-                PatchSize=self.PatchSize,
-                K=K0,
-                S=self.S,
-                PCA_transform=False,
-                verbose=self.verbose,
-                **self.CLS_init)
-
-            # Get low rank component
-            CLS_data = forward_patch_transform(Xhat, self.PatchSize)
-
-            Uec, _, _ = np.linalg.svd(CLS_data)
-
-            if self.L > 0:
-                lrc = Uec[:, :self.L]
-            else:
-                lrc = None
-
-            dicoinit = D.T
         #
         # Learn Dictionary
         #
@@ -346,9 +302,9 @@ class Dico_Learning_Executer:
 
         # Remove lrc and ensures othogonality of input dico initialization.
         if self.L > 1:
-            dicoinit -= lrc @ lrc.T @ dicoinit
+            self.init -= lrc @ lrc.T @ self.init
 
-        dicoinit = dicoinit @ np.diag(1 / lin.norm(dicoinit, axis=0))
+        self.init = self.init @ np.diag(1 / lin.norm(self.init, axis=0))
 
         # Call reconstruction algo
         params = {
@@ -358,9 +314,8 @@ class Dico_Learning_Executer:
             'S': self.S,
             'lrc': lrc,
             'Nit': self.Nit,
-            'init': dicoinit,
-            'verbose': self.verbose,
-            'parent': self if self.xref is not None else None}
+            'init': self.init,
+            'verbose': self.verbose}
 
         if method == 'ITKrMM':
             dico_hat, info = itkrmm_core(**params)
@@ -378,7 +333,7 @@ class Dico_Learning_Executer:
         Xhat = self.dico_to_data(dico_hat)
 
         # Reshape output dico
-        p = self.PatchSize
+        p = self.P
         shape_dico = (self.K, p, p) if self.Y.ndim == 2 else (
             self.K, p, p, self.Y_PCA.shape[-1])
 
@@ -386,9 +341,12 @@ class Dico_Learning_Executer:
 
         # Manage output info
         dt = time.time() - start
+
         InfoOut = {'dico': dico, 'time': dt}
-        if 'SNR' in info:
-            InfoOut['SNR'] = info['SNR']
+
+        if self.CLS_init is not None:
+            dico_CLS = np.hstack((self.init_lr, self.init))
+            InfoOut['CLS_init'] = dico_CLS.T.reshape(shape_dico)
 
         if self.PCA_operator is not None:
             PCA_info = {
@@ -404,11 +362,72 @@ class Dico_Learning_Executer:
 
         return Xhat, InfoOut
 
+    def dico_to_data(self, dico):
+        """Estimate reconstructed data based on the provided dictionary.
 
-def ITKrMM(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-           Nit=40, init=None, CLS_init=None, xref=None,
-           invert_function=None, verbose=True, PCA_transform=True,
-           PCA_th='auto'):
+        Arguments
+        ---------
+        dico: (P**2, K) or (P**2*l, K) numpy array
+            The estimated dictionary.
+
+        Returns
+        -------
+        (m, n) or (m, n, l) numpy array
+            The reconstructed data
+        """
+        # Recontruct data from dico and coeffs.
+        coeffs = OMPm(dico.T, self.data.T, self.S, self.mdata.T)
+        outpatches = sps.csc_matrix.dot(dico, (coeffs.T).tocsc())
+
+        # Transform from patches to data.
+        Xhat = inverse_patch_transform(outpatches, self.Y_PCA.shape)
+        Xhat = Xhat * self.mean_std[1] + self.mean_std[0]
+
+        if self.Y.ndim == 3:
+            Xhat = self.PCA_operator.inverse(Xhat)
+
+        return Xhat
+
+    def get_CLS_init(self):
+        """Computes the initialization with CLS.
+
+        Returns
+        -------
+        (N, L) numpy array
+            Low-rank component estimation. N is the number of voxels in a
+            patch.
+        (N, K-L) numpy array
+            Dictionary initialization. N is the number of voxels in a patch.
+        """
+
+        # Get initialization dictionary
+        D, C, Xhat, InfoOut = CLS_init(
+            self.Y_PCA,
+            mask=self.mask,
+            P=self.P,
+            K=self.K - self.L,
+            S=self.S,
+            PCA_transform=False,
+            verbose=self.verbose,
+            **self.CLS_init)
+
+        # Get low rank component
+        CLS_data = forward_patch_transform(Xhat, self.P)
+
+        Uec, _, _ = np.linalg.svd(CLS_data)
+
+        init_lr = Uec[:, :self.L]
+        dico_init = D.T
+
+        return init_lr, dico_init
+
+
+def ITKrMM(Y, mask=None,
+           P=5, K=None, L=1, S=None,
+           Nit_lr=10, Nit=40,
+           init_lr=None, init=None, CLS_init=None,
+           PCA_transform=True, PCA_th='auto',
+           verbose=True):
     """ITKrMM restoration algorithm.
 
     Arguments
@@ -418,7 +437,7 @@ def ITKrMM(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
     mask: optional, None or (m, n) numpy array
         The acquisition mask.
         Default is None for full sampling.
-    PatchSize: optional, int
+    P: optional, int
         The width (or height) of the patch.
         Default is 5.
     K: optional, int
@@ -434,7 +453,7 @@ def ITKrMM(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
         Default is 10.
     Nit: optional, int
         The number of iterations. Default is 40.
-    init: (PatchSize**2, K+L) or (PatchSize**2*l, K+L) numpy array
+    init: (P**2, K+L) or (P**2*l, K+L) numpy array
         Initialization dictionary.
     CLS_init: optional, dico
         CLS initialization inofrmation. See Notes for details.
@@ -478,16 +497,17 @@ def ITKrMM(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
     """
 
     obj = Dico_Learning_Executer(
-        Y, mask, PatchSize, K, L, S, Nit_lr,
-        Nit, init, CLS_init, xref, invert_function, verbose, PCA_transform,
-        PCA_th)
+        Y, mask, P, K, L, S, Nit_lr, Nit, init_lr, init, CLS_init,
+        PCA_transform, PCA_th, verbose)
     return obj.execute(method='ITKrMM')
 
 
-def wKSVD(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
-          Nit=40, init=None, CLS_init=None, xref=None,
-          invert_function=None, verbose=True, PCA_transform=True,
-          PCA_th='auto'):
+def wKSVD(Y, mask=None,
+          P=5, K=None, L=1, S=None,
+          Nit_lr=10, Nit=40,
+          init_lr=None, init=None, CLS_init=None,
+          PCA_transform=True, PCA_th='auto',
+          verbose=True):
     """wKSVD restoration algorithm.
 
     Arguments
@@ -497,7 +517,7 @@ def wKSVD(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
     mask: optional, None or (m, n) numpy array
         The acquisition mask.
         Default is None for full sampling.
-    PatchSize: optional, int
+    P: optional, int
         The width (or height) of the patch.
         Default is 5.
     K: optional, int
@@ -513,7 +533,7 @@ def wKSVD(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
         Default is 10.
     Nit: optional, int
         The number of iterations. Default is 40.
-    init: (PatchSize**2, K+L) or (PatchSize**2*l, K+L) numpy array
+    init: (P**2, K+L) or (P**2*l, K+L) numpy array
         Initialization dictionary.
     CLS_init: optional, dico
         CLS initialization inofrmation. See Notes for details.
@@ -557,9 +577,8 @@ def wKSVD(Y, mask=None, PatchSize=5, K=128, L=1, S=20, Nit_lr=10,
     """
 
     obj = Dico_Learning_Executer(
-        Y, mask, PatchSize, K, L, S, Nit_lr,
-        Nit, init, CLS_init, xref, invert_function, verbose, PCA_transform,
-        PCA_th)
+        Y, mask, P, K, L, S, Nit_lr, Nit, init_lr, init, CLS_init,
+        PCA_transform, PCA_th, verbose)
     return obj.execute(method='wKSVD')
 
 

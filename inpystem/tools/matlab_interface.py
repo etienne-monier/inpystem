@@ -99,8 +99,23 @@ def matlab_interface(program, dataDico):
 
         # Loads output data
         _logger.info('Loading Matlab results.')
+        # try:
         data = sio.loadmat(str(outName))
 
+        # except FileNotFoundError:
+        #     res = input(
+        #         '\033[93mWarning: something has gone wrong in the {} program.'
+        #         ' Do you want to let the tmp file {} for debugging ? [Y/n]'
+        #         ' \033[0m'.format(program.name, outName))
+        #     if res.strip().lower() != 'n':
+        #         os.remove(str(inName))
+
+        #     _logger.exception(
+        #         'The Matlab program {} did not execute correctly.'.format(
+        #             program.name))
+        #     raise
+
+        # else:
         # Erase temp input/output data
         _logger.info('Cleaning temporary files.')
         os.remove(str(inName))

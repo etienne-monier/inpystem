@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
+import logging
 
 import numpy as np
 import numpy.testing as npt
@@ -20,7 +21,7 @@ class Test_PCA(unittest.TestCase):
     def test_EigenEstimate(self):
         pass
 
-    def test_Dimension_Reduction(self):
+    def test_Dimension_Reduction(self):#, caplog):
 
         # Case with specific threshold.
         #
@@ -51,6 +52,7 @@ class Test_PCA(unittest.TestCase):
 
         # Case less samples than dim.
         #
+        # with caplog.at_level(logging.CRITICAL):
         N = 4
         Ytmp = np.moveaxis(self.Y, 0, -1)[:2, :2, :]
         S, InfoOut = PCA.Dimension_Reduction(Ytmp, PCA_th='max')

@@ -1,5 +1,5 @@
 inpystem.tools.PCA module
-=======================
+=========================
 
 .. automodule:: inpystem.tools.PCA
 
