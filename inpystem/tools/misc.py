@@ -8,7 +8,8 @@ def toslice(text=None, length=None):
 
     Input strings can be eg. '5:10', ':10', '1:'. Negative limits are
     allowed only if the data length is given. In such case, input
-    strings can be e.g. '1:-10'.
+    strings can be e.g. '1:-10'. Last, an integer can be given alone 
+    such as '1' to select only the 1st element.
 
     If no text not length is given, default slice is slice(None).
 
@@ -35,26 +36,41 @@ def toslice(text=None, length=None):
     # Getting slice limits and storing it into lim.
     lim = text.split(':')
 
-    for cnt in range(2):
-        lim[cnt] = None if lim[cnt] == '' else eval(lim[cnt])
+    if len(lim) == 2:
+        for cnt in range(2):
+            lim[cnt] = None if lim[cnt] == '' else eval(lim[cnt])
 
-    # Let us chack that length is given in case limits are negative
-    if ((lim[0] is not None and lim[0] < 0) or
-            (lim[1] is not None and lim[1] < 0)) and length is None:
-        raise ValueError(
-            'Please give the length argument to handle negative limits.')
+        # Let us chack that length is given in case limits are negative
+        if ((lim[0] is not None and lim[0] < 0) or
+                (lim[1] is not None and lim[1] < 0)) and length is None:
+            raise ValueError(
+                'Please give the length argument to handle negative limits.')
 
-    # The non-None limits are transformed if length is given to
-    # avoid negative or 'greater than length' limits.
-    for cnt in range(2):
-        if lim[cnt] is not None and lim[cnt] < 0 and length is not None:
-            lim[cnt] = lim[cnt] % length
+        # The non-None limits are transformed if length is given to
+        # avoid negative or 'greater than length' limits.
+        for cnt in range(2):
+            if lim[cnt] is not None and lim[cnt] < 0 and length is not None:
+                lim[cnt] = lim[cnt] % length
 
-    # Last check before output: if limits are a:b, does b is really
-    # greater than a ?
-    if None not in lim and lim[0] >= lim[1]:
-        raise ValueError(
-            'The slice lower bound is greater or equal to the '
-            'slice upper bound.')
+        # Last check before output: if limits are a:b, does b is really
+        # greater than a ?
+        if None not in lim and lim[0] >= lim[1]:
+            raise ValueError(
+                'The slice lower bound is greater or equal to the '
+                'slice upper bound.')
 
-    return slice(*lim)
+        return slice(*lim)
+
+    elif len(lim) == 1:
+
+        lim = eval(lim[0])
+
+        if length is not None:
+            lim = lim % length
+        
+        return slice(lim, lim+1)
+
+    else:
+        raise ValueError(f'Invalid input slice {text}.')
+
+    return 0

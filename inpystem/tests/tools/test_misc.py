@@ -46,3 +46,21 @@ class Test_misc(unittest.TestCase):
         self.assertIsNone(s.start)
         self.assertEqual(s.stop, N)
         self.assertIsNone(s.step)
+
+        # Case 5 without length
+        s = misc.toslice('5')
+        self.assertEqual(s.start, 5)
+        self.assertEqual(s.stop, 6)
+        self.assertIsNone(s.step)
+
+        # Case 5 with length
+        s = misc.toslice('5', length=N)
+        self.assertEqual(s.start, 5)
+        self.assertEqual(s.stop, 6)
+        self.assertIsNone(s.step)
+
+        # Case 105 with length
+        s = misc.toslice('105', length=N)
+        self.assertEqual(s.start, 5)
+        self.assertEqual(s.stop, 6)
+        self.assertIsNone(s.step)
