@@ -252,9 +252,9 @@ class Scan:
 
             if data.ndim == 3:
                 _logger.info('{} scan file type is A.'.format(file_ext))
-                m, n, _ = data.shape
-                x = data[:, :, 0].flatten()-1
-                y = data[:, :, 1].flatten()-1
+                _, m, n = data.shape
+                x = data[0, :, :].flatten()
+                y = data[1, :, :].flatten()
 
             elif data.ndim == 2:
                 _logger.info('{} scan file type is B.'.format(file_ext))
@@ -398,7 +398,7 @@ class AbstractStem(abc.ABC):
             raise ValueError('Invalid input data.')
 
         if scan is None:
-            scan = Scan.random(hsdata.data.shape)
+            scan = Scan.random(hsdata.data.shape[:2])
 
         if scan.shape != hsdata.data.shape[:2]:
             raise ValueError('hsdata and scan have incoherent spatial shape.')
@@ -575,8 +575,10 @@ class AbstractStem(abc.ABC):
         # The new scan object.
         self.scan = Scan((m1, n1), p_new, ratio)
 
-    def correct_fromfile(self, file):
+    def correct_fromfile(self, file, force_ndim=None):
         """
+        force_ndim aims at forcing dimension. Default is None for data
+        dimension.
         """
 
         # The path of the config file is defined.
@@ -591,12 +593,12 @@ class AbstractStem(abc.ABC):
         config.read(p)
 
         # The section inside which to look at.
-        ndim = self.hsdata.data.ndim
+        ndim = self.hsdata.data.ndim if force_ndim is None else force_ndim
         section = '{}D DATA'.format(ndim)
 
         keys = ['rows', 'columns', 'bands']
         slices = []
-        for cnt in range(ndim):
+        for cnt in range(3):
             value = config[section].get(keys[cnt], fallback=None)
             slices.append(
                 misc.toslice(value, length=self.hsdata.data.shape[cnt]))

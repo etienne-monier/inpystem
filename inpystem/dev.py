@@ -243,7 +243,11 @@ class Dev2D(sig.Stem2D, AbstractDev):
 
         # Checks is modification is required
         if modif_file is not None:
-            self.correct_fromfile(modif_file)
+            self.correct_fromfile(modif_file, force_ndim=2)
+
+        # In case the 2D data file was 3D
+        if self.hsdata.data.ndim == 3:
+            self.hsdata = self.hsdata.transpose().squeeze()
 
         AbstractDev.__init__(
             self, key, self.hsdata.data, self.scan.get_mask(), sigma, seed,

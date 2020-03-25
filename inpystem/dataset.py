@@ -8,6 +8,7 @@ import configparser
 import re
 
 import numpy as np
+import scipy.io as scio
 import hyperspy.api as hs
 
 from . import dev as devm
@@ -192,10 +193,19 @@ def load_file(
     # Get data
     data_file = DIR / config[section]['file']
 
-    if data_file.suffix == '.npy':
+    if data_file.suffix in ['.npy', '.mat']:
 
         # This is a numpy file
-        ndata = np.load(str(data_file))
+        if data_file.suffix == '.npy':
+            ndata = np.load(str(data_file))
+        # This is a matlab file
+        else:
+            # The data variable name
+            variable_name = config[section]['mat_variable_name']
+            mat_data = scio.loadmat(str(data_file),
+                                    variable_names=variable_name)
+            ndata = mat_data[variable_name]
+
         if ndim == 2:
             data = hs.signals.Signal2D(ndata)
         else:
@@ -232,6 +242,13 @@ def load_file(
     else:
         data = hs.load(str(data_file))
 
+    # This prevents 2D data on several bands to be seen as a 2D object.
+    if ndim == 2 and data.data.ndim != 2:
+        data = data.transpose()
+        force_ndim = 2
+    else:
+        force_ndim = None
+
     # SCAN
     #
 
@@ -259,7 +276,10 @@ def load_file(
 
         # Correct data from file.
         #
-        obj.correct_fromfile(file)
+        obj.correct_fromfile(file, force_ndim=force_ndim)
+
+        if force_ndim is not None:
+            obj.hsdata = obj.hsdata.transpose().squeeze()
 
     else:
 
