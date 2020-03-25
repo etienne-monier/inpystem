@@ -177,7 +177,7 @@ And the data would be loaded by simply typing this.
 Some example data for fast testing
 ----------------------------------
 
-The package is delivered with some toy data for testng which are not provided inside the package itself due to the high data size. Please download it at the `github project page`_ under location :code:`DATA/` and copy it to your data path (see :ref:`sec-loading-data`). These data can be called afterwards with the :func:`~.dataset.load_key` function.
+The package is delivered with some toy data for testing which are not provided inside the package itself due to the high data size. Please download it at the `github project page`_ under location :code:`DATA/` and copy it to your data path (see :ref:`sec-loading-data`). These data can be called afterwards with the :func:`~.dataset.load_key` function.
 
 .. _github project page: https://github.com/etienne-monier/inpystem
 

@@ -48,7 +48,7 @@ In addition to these arguments, a required input is :code:`key` which is a small
 
 .. code-block:: python
 
-    >>> stem2d_data = inpystem.load_example('HR-sample', 2)
+    >>> stem2d_data = inpystem.load_key('HR-sample', 2)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
@@ -64,7 +64,7 @@ In addition to these arguments, a required input is :code:`key` which is a small
 With load functions
 ~~~~~~~~~~~~~~~~~~~
 
-The :func:`~.dataset.load_file`, :func:`~.dataset.load_key` and :func:`~.dataset.load_example` functions also enable to load development data. To that end, the user just has to use the :code:`dev` input which is a dictionary. This dictionary should store the desired inputs:
+The :func:`~.dataset.load_file` and :func:`~.dataset.load_key` functions also enable to load development data. To that end, the user just has to use the :code:`dev` input which is a dictionary. This dictionary should store the desired inputs:
 
 * for 2D data: :code:`modif_file`, :code:`sigma`, :code:`seed` and :code:`normalized`
 * for 2D data: :code:`PCA_transform`, :code:`PCA_th`, :code:`modif_file`, :code:`sigma`, :code:`seed` and :code:`normalized`
@@ -72,7 +72,7 @@ The :func:`~.dataset.load_file`, :func:`~.dataset.load_key` and :func:`~.dataset
 .. code-block:: python
 
     >>> dev = {'sigma': 0.5, 'seed': 0}
-    >>> inpystem.load_example('HR-sample', 2, dev=dev, scan_ratio=0.5, scan_seed=1)
+    >>> inpystem.load_key('HR-sample', 2, dev=dev, scan_ratio=0.5, scan_seed=1)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
@@ -116,7 +116,7 @@ In the case of the :class:`~.dev.Dev3D` class, these parameters are given at ini
 .. code-block:: python
 
     >>> dev = {'sigma': 0.5, 'PCA_transform': False}
-    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_key('HR-sample', 3, dev=dev)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
@@ -145,7 +145,7 @@ In the case of True :attr:`~.dev.Dev3D.PCA_transform` at initialization, a PCA p
 .. code-block:: python
 
     >>> dev = {'sigma': 0.5, 'PCA_transform': True}
-    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_key('HR-sample', 3, dev=dev)
     Reading configuration file ...
     Generating data ...
     Creating STEM acquisition...
@@ -186,7 +186,7 @@ These methods incorporate also normalization procedure inside. This means that t
     
     # Case with non-PCA-initialized object
     >>> dev = {'sigma': 0.5, 'PCA_transform': False, 'normalize': False}
-    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_key('HR-sample', 3, dev=dev)
     >>> direct_data = data.direct_transform(data.data)  # Performing direct transformation to data
     >>> inverse_data = data.inverse_transform(data.data)  # Performing inverse transformation to data
     >>> import numpy.testing as npt  # This is to check arrays are equal
@@ -194,7 +194,7 @@ These methods incorporate also normalization procedure inside. This means that t
     >>> npt.assert_allclose(data.data, inverse_data)  # Equal
 
     >>> dev = {'sigma': 0.5, 'PCA_transform': False}  # Non-normalized here
-    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_key('HR-sample', 3, dev=dev)
     >>> direct_data = data.direct_transform(data.data)
     >>> inverse_data = data.inverse_transform(direct_data)
     >>> npt.assert_allclose(data.data, direct_data)  # Error because of normalization
@@ -202,7 +202,7 @@ These methods incorporate also normalization procedure inside. This means that t
 
     # Case with PCA-initialized object
     >>> dev = {'sigma': 0.5, 'PCA_transform': True}
-    >>> data = inpystem.load_example('HR-sample', 3, dev=dev)
+    >>> data = inpystem.load_key('HR-sample', 3, dev=dev)
     >>> inverse_data = data.inverse_transform(data.data)
     >>> direct_data = data.direct_transform(inverse_data)
     >>> npt.assert_allclose(data.data, direct_data)  # Equal: direct, then inverse is still identity :)
