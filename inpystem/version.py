@@ -3,7 +3,7 @@
 name = 'inpystem'
 
 # Related PEP: https://www.python.org/dev/peps/pep-0440/
-version = "0.1rc2"
+version = "0.1.1"
 description = "A python library for STEM acquisition inpainting."
 license = 'MIT'
 

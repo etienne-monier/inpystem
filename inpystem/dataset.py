@@ -201,10 +201,17 @@ def load_file(
         # This is a matlab file
         else:
             # The data variable name
-            variable_name = config[section]['mat_variable_name']
+            if 'mat_variable_name' in config[section]:
+                variable_name = config[section]['mat_variable_name']
+            else:
+                raise ValueError('The mat_variable_name entry is necessary'
+                                 ' for .mat files.')
             mat_data = scio.loadmat(str(data_file),
                                     variable_names=variable_name)
             ndata = mat_data[variable_name]
+
+        # To prevent hsdata swap axes.
+        ndata = np.swapaxes(ndata, 0, 1)
 
         if ndim == 2:
             data = hs.signals.Signal2D(ndata)
