@@ -22,13 +22,6 @@ def dct2d(a):
     -------
     (m, n) numpy array
         DCT coefficient matrix.
-
-    Example
-    -------
-    >>> from inpystem.tools.dct import dct2d
-    >>> import scipy.misc
-    >>> face = scipy.misc.face()
-    >>> A = dct2d(face.sum(2))
     """
     return fp.dctn(a, norm='ortho')
 
@@ -46,19 +39,11 @@ def idct2d(a):
     -------
     (m, n) numpy array
         2D image.
-
-    Example
-    -------
-    >>> from inpystem.tools.dct import dct2d, idct2d
-    >>> import scipy.misc
-    >>> face = scipy.misc.face()
-    >>> A = dct2d(face.sum(2))
-    >>> X = idct2d(A)
     """
     return fp.idctn(a, norm='ortho')
 
 
-def dct2d_bb(x, size=None):
+def dct2d_bb(x, shape=None):
     """
     Computes the band-by-band 2D Normalized DCT-II
 
@@ -71,50 +56,31 @@ def dct2d_bb(x, size=None):
         2D or 3D multi-band data.
         If the data has 3 dimensions, the last axis is for spetra.
         If the data is 2D, the first axis is for spectra.
-    size: optional, (m, n) tuple
-        This is the spatial size. This parameter is required only if input data
+    shape: optional, (m, n, l) tuple
+        This is the data shape. This parameter is required only if input data
         are 2D.
 
     Returns
     -------
     (l, m*n) or (m, n, l) numpy array
         DCT coefficient matrix.
-
-    Example
-    -------
-    >>> from inpystem.tools.dct import dct2d_bb
-    >>> import scipy.misc
-    >>> face = scipy.misc.face()
-    >>> A = dct2d_bb(face)
     """
+    if x.ndim == 3:
 
-    X = x.copy()
+        return fp.dctn(x, axes=(0, 1), norm='ortho')
 
-    # If the data are 2D, it should be transformed back to 3D data.
-    if X.ndim == 2:
-
-        if size is None:
-            raise ValueError(
-                'size parameter required for 2D data.')
-
-        B = X.shape[0]
-        m, n = size
-        X = X.T.reshape((m, n, B))
     else:
-        m, n, B = X.shape
 
-    # Perform 2D DCT for all bands.
-    for i in range(B):
-        X[:, :, i] = dct2d(X[:, :, i])
+        if shape is None:
+            raise ValueError('shape parameter required for 2D data.')
 
-    # If input data were 2D, reshape output so that to get a 2D matrix.
-    if x.ndim == 2:
-        X = X.reshape((m*n, B)).T
+        X = fp.dctn(x.T.reshape(shape), axes=(0, 1), norm='ortho')
 
-    return X
+        m, n, B = shape
+        return X.reshape((m*n, B)).T
 
 
-def idct2d_bb(a, size=None):
+def idct2d_bb(a, shape=None):
     """Computes the band-by-band inverse 2D Normalized DCT-II
 
     If the input a is a 3D data cube, the 2D dct will be computed for each 2D
@@ -126,47 +92,26 @@ def idct2d_bb(a, size=None):
         2D or 3D multi-band data DCT decomposition.
         If the data has 3 dimensions, the last axis is for spetra.
         If the data is 2D, the first axis is for spectra.
-    size: optional, (m, n) tuple
-        This is the spatial size. This parameter is required only if input data
+    shape: optional, (m, n, l) tuple
+        This is the data shape. This parameter is required only if input data
         are 2D.
 
     Returns
     -------
     (l, m*n) or (m, n, l) numpy array
         The image matrix.
-
-    Example
-    -------
-    >>> from inpystem.tools.dct import dct2d_bb, idct2d_bb
-    >>> import scipy.misc
-    >>> import numpy.testing as npt
-    >>> face = scipy.misc.face()
-    >>> A = dct2d_bb(face)
-    >>> X = idct2d_bb(A)
-    >>> npt.assert_allclose(X, face, atol=1e-12)
     """
-
-    A = a.copy()
-
     # If the data are 2D, it should be transformed back to 3D data.
-    if A.ndim == 2:
+    if a.ndim == 3:
 
-        if size is None:
-            raise ValueError(
-                'size parameter required for 2D data.')
+        return fp.idctn(a, axes=(0, 1), norm='ortho')
 
-        B = A.shape[0]
-        m, n = size
-        A = A.T.reshape((m, n, B))
     else:
-        m, n, B = A.shape
 
-    # Perform 2D DCT for all bands.
-    for i in range(B):
-        A[:, :, i] = idct2d(A[:, :, i])
+        if shape is None:
+            raise ValueError('shape parameter required for 2D data.')
 
-    # If input data were 2D, reshape output so that to get a 2D matrix.
-    if a.ndim == 2:
-        A = A.reshape((m*n, B)).T
+        A = fp.idctn(a.T.reshape(shape), axes=(0, 1), norm='ortho')
 
-    return A
+        m, n, B = shape
+        return A.reshape((m*n, B)).T
