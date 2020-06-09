@@ -599,9 +599,10 @@ class AbstractStem(abc.ABC):
         keys = ['rows', 'columns', 'bands']
         slices = []
         for cnt in range(3):
-            value = config[section].get(keys[cnt], fallback=None)
-            slices.append(
-                misc.toslice(value, length=self.hsdata.data.shape[cnt]))
+            if cnt < len(self.hsdata.data.shape):
+                value = config[section].get(keys[cnt], fallback=None)
+                slices.append(
+                    misc.toslice(value, length=self.hsdata.data.shape[cnt]))
 
         dpixels = config[section].getlist('dpixels', fallback=None)
 

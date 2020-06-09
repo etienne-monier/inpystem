@@ -210,8 +210,10 @@ def load_file(
                                     variable_names=variable_name)
             ndata = mat_data[variable_name]
 
-        # To prevent hsdata swap axes.
-        ndata = np.swapaxes(ndata, 0, 1)
+        # import ipdb; ipdb.set_trace()
+
+        # # To prevent hsdata swap axes.
+        # ndata = np.swapaxes(ndata, 0, 1)
 
         if ndim == 2:
             data = hs.signals.Signal2D(ndata)
