@@ -21,7 +21,7 @@ inpystem==0.1.1
 ipdb==0.12.2
 ipykernel==5.1.2
 ipyparallel==6.2.4
-ipython==7.6.1
+ipython==7.16.3
 ipython-genutils==0.2.0
 jedi==0.14.1
 Jinja2==2.11.3
